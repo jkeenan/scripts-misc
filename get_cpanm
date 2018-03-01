@@ -1,1 +1,11 @@
-wget -P bin -O - http://cpansearch.perl.org/src/MIYAGAWA/App-cpanminus-1.7043/bin/cpanm | ./bin/perl - App::cpanminus
+#!/bin/sh
+# Adapted from Florian Ragwitz and Karl Williamson
+# Prerequisite: wget
+# Run this from the top level of a perl installed for testing purposes,
+# i.e., a directory under which you have, at a minimum:
+#     ./bin
+#     ./bin/perl
+#     ./lib
+
+wget -P bin -O - http://cpansearch.perl.org/src/MIYAGAWA/App-cpanminus-1.7043/bin/cpanm | \
+    ./bin/perl - App::cpanminus

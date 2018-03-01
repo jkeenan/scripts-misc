@@ -1,11 +1,21 @@
 #!/bin/sh
-# Adapted from Florian Ragwitz and Karl Williamson
+
+# Installs 'cpanm' against a newly installed perl
+
 # Prerequisite: wget
+
 # Run this from the top level of a perl installed for testing purposes,
 # i.e., a directory under which you have, at a minimum:
-#     ./bin
-#     ./bin/perl
-#     ./lib
+#    ./bin
+#    ./bin/perl
+#    ./lib
+
+# After installation, cd to that top-level directory and start installing CPAN
+# modules against that perl
+#
+#   ./bin/cpanm List::Compare Text::CSV::Hashify
+
+# Adapted from Florian Ragwitz and Karl Williamson
 
 wget -P bin -O - http://cpansearch.perl.org/src/MIYAGAWA/App-cpanminus-1.7043/bin/cpanm | \
     ./bin/perl - App::cpanminus

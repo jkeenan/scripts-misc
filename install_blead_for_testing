@@ -1,2 +1,6 @@
-# Assumes existence of 'install_branch_for_testing.sh' in PATH
-install_branch_for_testing.sh
+#!/bin/sh
+
+# Assumes existence of 'install_branch_for_testing' in PATH.
+# See that program for documentation.
+
+install_branch_for_testing blead

@@ -1,0 +1,2 @@
+# Assumes existence of 'install_branch_for_testing.sh' in PATH
+install_branch_for_testing.sh

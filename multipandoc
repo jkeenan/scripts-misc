@@ -1,0 +1,114 @@
+#!/usr/bin/env perl
+use strict;
+use warnings;
+use v5.10.1;
+our $VERSION = '0.03';
+use Carp;
+use Getopt::Long;
+use Cwd;
+BEGIN { eval "require Pod::Pandoc"; die "Need to install Pod::Pandoc from CPAN" if $@; }
+
+=head1 NAME
+
+multipandoc - Convert POD simultaneously into .pdf, .html, .txt and .odt
+
+=head1 USAGE
+
+    multipandoc \
+      --sourcedir=/home/username/gitwork/mypresentations/p5-codebase-health \
+      --podfile=p5-codebase-health.pod \
+      --outputdir=/home/username/tmp \
+      --stub=p5-codebase-health \
+      --verbose
+
+=head1 DESCRIPTION
+
+This program simultaneously transforms a file written in Perl's Plain Old
+Documentation (POD) format into documents in PDF, HTML, plain-text and
+OpenOffice formats.
+
+=head2 Prerequisites
+
+This program is largely a wrapper around the program F<pod2pandoc> which is
+part of the L<Pod-Pandoc|http://search.cpan.org/dist/Pod-Pandoc/> distribution from
+CPAN.  F<pod2pandoc> is, in turn, dependent upon F<pandoc>, a general markup
+converter documented at L<http://pandoc.org>.
+
+Please install F<pandoc> with your operating system's ports system.  Then
+install F<Pod-Pandoc> via F<cpan Pod::Pandoc> or an equivalent operating
+system port.
+
+=head2 Installation
+
+Place this file somewhere in your PATH and make it executable.
+
+=head2 Command-Line Options
+
+=over 4
+
+=item * C<sourcedir>
+
+Path to directory holding the input file written in POD format.  Defaults to the current working directory.
+
+=item * C<podfile>
+
+Input file written in POD format.  Defaults to C<presentation.pod>.
+
+=item * C<outputdir>
+
+Directory in which the various output files will be created.  Defaults to the same directory as C<sourcedir>.
+
+=item * C<stub>
+
+A string which will be used to compose the name of each output file.
+
+=item * C<verbose>
+
+Request extra information on F<STDOUT> as the program runs.
+
+=back
+
+=cut
+
+my ($sourcedir, $podfile, $outputdir, $stub, $verbose);
+
+GetOptions(
+    "sourcedir=s"       => \$sourcedir,
+    "podfile=s"         => \$podfile,
+    "outputdir=s"       => \$outputdir,
+    "stub=s"            => \$stub,
+    "verbose"           => \$verbose,
+) or croak("Error in command line arguments");
+
+$sourcedir ||= cwd();
+$podfile ||= 'presentation.pod';
+$outputdir ||= $sourcedir;
+croak "Could not locate $sourcedir" unless (-d $sourcedir);
+croak "Could not locate $podfile" unless (-f "$sourcedir/$podfile");
+croak "Could not locate $outputdir" unless (-d $outputdir);
+
+my @lt = localtime();
+my $ltstr = sprintf("%04d%02d%02d" => (
+    $lt[5]+1900,
+    $lt[4]+1,
+    $lt[3],
+));
+$stub ||= join('_' => 'presentation', $ltstr);
+$verbose ||= '';
+
+my $program = 'pod2pandoc';
+my @filetypes = ( qw| pdf html txt odt | );
+for my $f (@filetypes) {
+    my $cmd = qq{$program "$sourcedir/$podfile" -o "$outputdir/$stub.$f"};
+    say "Processing: $cmd" if $verbose;
+    system($cmd) and carp "Unable to execute pod2pandoc and pandoc for filetype '$f'";
+}
+
+say "\nFinished" if $verbose;
+
+=head1 COPYRIGHT
+
+Copyright 2016-18, James E Keenan (jkeenan at cpan dot org)
+
+=cut
+

@@ -15,7 +15,7 @@ multipandoc - Convert POD simultaneously into .pdf, .html, .txt and .odt
 =head1 USAGE
 
     multipandoc \
-      --sourcedir=/home/username/gitwork/mypresentations/p5-codebase-health \
+      --sourcedir=/home/username/p5-codebase-health \
       --podfile=p5-codebase-health.pod \
       --outputdir=/home/username/tmp \
       --stub=p5-codebase-health \
@@ -48,7 +48,8 @@ Place this file somewhere in your PATH and make it executable.
 
 =item * C<sourcedir>
 
-Path to directory holding the input file written in POD format.  Defaults to the current working directory.
+Path to directory holding the input file written in POD format.  Defaults to
+the current working directory.
 
 =item * C<podfile>
 
@@ -56,7 +57,8 @@ Input file written in POD format.  Defaults to C<presentation.pod>.
 
 =item * C<outputdir>
 
-Directory in which the various output files will be created.  Defaults to the same directory as C<sourcedir>.
+Directory in which the various output files will be created.  Defaults to the
+same directory as C<sourcedir>.
 
 =item * C<stub>
 
@@ -66,11 +68,17 @@ A string which will be used to compose the name of each output file.
 
 Request extra information on F<STDOUT> as the program runs.
 
+=item * C<help> or C<usage>
+
+Print out a usage statement on F<STDERR>, then exit with non-zero status.
+
 =back
 
 =cut
 
 my ($sourcedir, $podfile, $outputdir, $stub, $verbose);
+my ($help, $usage) = ('') x 2;
+unless (@ARGV) { usage(); }
 
 GetOptions(
     "sourcedir=s"       => \$sourcedir,
@@ -78,7 +86,11 @@ GetOptions(
     "outputdir=s"       => \$outputdir,
     "stub=s"            => \$stub,
     "verbose"           => \$verbose,
+    "help"              => \$help,
+    "usage"             => \$usage,
 ) or croak("Error in command line arguments");
+
+if ($help or $usage) { usage(); }
 
 $sourcedir ||= cwd();
 $podfile ||= 'presentation.pod';
@@ -105,6 +117,19 @@ for my $f (@filetypes) {
 }
 
 say "\nFinished" if $verbose;
+
+sub usage {
+    my $usage = <<'END_OF_USAGE';
+multipandoc \
+  --sourcedir=/home/username/p5-codebase-health \
+  --podfile=p5-codebase-health.pod \
+  --outputdir=/home/username/tmp \
+  --stub=p5-codebase-health \
+  --verbose
+END_OF_USAGE
+    say STDERR $usage;
+    exit 1;
+}
 
 =head1 COPYRIGHT
 

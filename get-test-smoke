@@ -402,7 +402,7 @@ symlink $smconf, $smconflink or croak "Unable to create symlink to $smconf";
 
 # perlcurrent.cfg
 # move Test::Smoke default into position, then write two more configurations
-my $pcfg_default = File::Spec->catfile($application_dir, qw| Test Smoke perlcurrent.cfg |);
+my $pcfg_default = File::Spec->catfile($application_dir, qw| lib Test Smoke perlcurrent.cfg |);
 croak "Unable to locate $pcfg_default" unless (-f $pcfg_default);
 my $pcfg_default_in_position = File::Spec->catfile($application_dir, qw| configs perlcurrent.default.cfg |);
 copy($pcfg_default => $pcfg_default_in_position)

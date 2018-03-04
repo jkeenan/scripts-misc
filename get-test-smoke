@@ -196,20 +196,26 @@ without running the library's own test suite).
 
 =item *
 
-Prepares a F<smokecurrent_config> configuration file with reasonable defaults.  (This obviates the need to run C<perl configsmoke.pl> and respond to its prompts, as you would need to do in a standard F<Test-Smoke> installation.) WHAT ARE THE DEFAULTS?
+Prepares a F<smokecurrent_config> configuration file with reasonable defaults.
+(This obviates the need to run C<perl configsmoke.pl> and respond to its
+prompts, as you would need to do in a standard F<Test-Smoke> installation.)
+WHAT ARE THE DEFAULTS?
 
 =item *
 
 Creates a directory and symlink structure underneath C<application_dir> reflecting the
 values in F<smokecurrent_config>.
 
-This directory structure differs from that in a standard F<Test-Smoke> installation in the following ways:
+This directory structure differs from that in a standard F<Test-Smoke>
+installation in the following ways:
 
 =over 4
 
 =item *
 
-The F<git-perl> and <perl-current> directories are placed I<beneath> C<application_dir> rather than at the same level in the filesystem as C<application_dir>.
+The F<git-perl> and <perl-current> directories are placed I<beneath>
+C<application_dir> rather than at the same level in the filesystem as
+C<application_dir>.
 
 =item *
 
@@ -224,7 +230,11 @@ symlinks keep F<Test-Smoke>'s operational programs happy.
 
 =item *
 
-TK
+A directory called F<scripts> is created below C<application_dir> to hold the
+current F<smokecurrent.sh>.  A symlink, also called F<smokecurrent.sh> is
+created in C<application_dir> pointing to its target in F<scripts>.  Should
+you wish to create different versions of the shell program, do so in
+C<scripts> and simply re-direct the symlink.
 
 =back
 

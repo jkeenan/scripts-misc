@@ -260,7 +260,7 @@ GetOptions(
 $downloads_dir //= (exists $ENV{DOWNLOADS_DIR} && (-d $ENV{DOWNLOADS_DIR}))
     ? $ENV{DOWNLOADS_DIR} : tempdir();
 unless (-d $downloads_dir) { croak "Could not locate downloads_dir '$downloads_dir'"; }
-else { say "downloads_dir:         $downloads_dir" if $verbose; }
+else { say "downloads_dir:          $downloads_dir" if $verbose; }
 if (! defined $host or ! defined $hostdir) {
     $host       = 'ftp.cpan.org';
     $hostdir    = 'pub/CPAN/modules/by-module';
@@ -288,7 +288,7 @@ else { # production
     }
 }
 unless (-d $application_dir) { croak "Could not locate application_dir '$application_dir'"; }
-else { say "application_dir:       $application_dir" if $verbose; }
+else { say "application_dir:        $application_dir" if $verbose; }
 
 
 chdir $downloads_dir or croak "Could not change to $downloads_dir";

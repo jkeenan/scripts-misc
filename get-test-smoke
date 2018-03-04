@@ -234,11 +234,20 @@ TK
 
 =head3 Why would I want to use different F<perlcurrent.cfg> files?
 
-TK
+Mainly to save time.  The default F<perlcurrent.cfg> that ships with
+F<Test-Smoke> is useful for exhaustive testing of various ways to build
+F<perl>, I<e.g.,> without and with C<-DDEBUGGING>.  But if you've been asked
+to do one-off testing of a colleague's branch, you probably don't need a
+configuration that will take many hours to completely run.
 
 =head3 How do I test different branches in the Perl 5 core distribution?
 
-TK
+Edit the file F<smokecurrent.gitbranch>.  Enter the name of the branch to be
+tested on the first line of the file.
+
+Note:  It is unfortunate that so many of F<Test-Smoke>'s files start with
+I<smokecurrent>, as that makes command-line auto-completion more tedious.  So
+here we provide a symlink:  F<gitbranch.smokecurrent>.
 
 =cut
 

@@ -129,20 +129,19 @@ directory created via C<File::Temp::tempdir()>.
 
 =item * C<application_dir>
 
-I<Optional, but strongly recommended.>  Path to the directory where you want
-F<Test-Smoke> to be installed.  (The F<Test-Smoke> documentation recommends
-installing the library in a I<non-standard> location, I<i.e.,> I<not> the
-location that would be chosen automatically by F<cpan> or F<cpanm>.)
+I<Required.> Path to the directory where you want F<Test-Smoke> to be
+installed.  (The F<Test-Smoke> documentation recommends installing the library
+in a I<non-standard> location, I<i.e.,> I<not> the location that would be
+chosen automatically by F<cpan> or F<cpanm>.)
+
+The program will create the directory specified by C<application_dir> but, as
+a precaution, will C<die> if that directory already exists.
 
 If you are conducting manual smoke testing, it is recommended that you create
 a directory immediately below your home directory.  Example:
 
     $> mkdir /home/username/p5smoke
     $> ./get-test-smoke --application_dir=/home/username/p5smoke
-
-If not provided, defaults to a directory called F<p5smoke> immediately
-underneath the current working directory -- but the program will C<die> if
-that directory does not already exist.
 
 =item * C<host> and C<hostdir>
 
@@ -247,50 +246,44 @@ croak 'Environmental variable $HOMEDIR not defined'
     unless (exists $ENV{HOMEDIR} and (-d $ENV{HOMEDIR}));
 my $cwd = cwd();
 
-my ($downloads_dir, $host, $hostdir, $application_dir,
-    $verbose, $testing, );
+my ($downloads_dir, $host, $hostdir, $application_dir, $verbose);
 GetOptions(
     "downloads_dir=s"   => \$downloads_dir,
     "application_dir=s" => \$application_dir,
     "host=s"            => \$host,
     "hostdir=s"         => \$hostdir,
     "verbose"           => \$verbose,
-    "testing"           => \$testing,
 ) or croak "Unable to get options";
+
+# Validate options
+if (! defined $application_dir) {
+    my $msg = "$0 needs to create a directory to hold application;";
+    $msg .= "\n  specify value for '--application_dir'";
+    croak $msg;
+}
+else {
+    if (-d $application_dir) {
+        croak "'$application_dir' already exists; $0 is not permitted to overwrite it";
+    }
+    else {
+        make_path($application_dir, { mode => 0711 });
+        say "application_dir:        $application_dir" if $verbose;
+    }
+}
+
 $downloads_dir //= (exists $ENV{DOWNLOADS_DIR} && (-d $ENV{DOWNLOADS_DIR}))
     ? $ENV{DOWNLOADS_DIR} : tempdir();
 unless (-d $downloads_dir) { croak "Could not locate downloads_dir '$downloads_dir'"; }
 else { say "downloads_dir:          $downloads_dir" if $verbose; }
+
 if (! defined $host or ! defined $hostdir) {
     $host       = 'ftp.cpan.org';
     $hostdir    = 'pub/CPAN/modules/by-module';
 }
 $verbose //= 0;
 
-if ($testing) {
-    if (! defined $application_dir) {
-        my $t = time();
-        $application_dir = File::Spec->catdir($cwd, $t);
-        make_path($application_dir, { mode => 0711 });
-    }
-    else {
-        make_path($application_dir, { mode => 0711 })
-            unless -d $application_dir;
-    }
-}
-else { # production
-    if (! defined $application_dir) {
-        $application_dir = File::Spec->catdir($cwd, 'p5smoke');
-    }
-    else {
-        make_path($application_dir, { mode => 0711 })
-            unless -d $application_dir;
-    }
-}
-unless (-d $application_dir) { croak "Could not locate application_dir '$application_dir'"; }
-else { say "application_dir:        $application_dir" if $verbose; }
 
-
+# download Test-Smoke via FTP
 chdir $downloads_dir or croak "Could not change to $downloads_dir";
 
 my $pdfd_object = Perl::Download::FTP::Distribution->new( {
@@ -322,6 +315,8 @@ if ($verbose) {
     say sprintf("%-24s%s" => 'distvname:', $distvname);
 }
 
+
+# Install Test-Smoke
 chdir $distvname or croak "Could not change to $distvname";
 
 $ENV{SMOKE_INSTDIR} = $application_dir;

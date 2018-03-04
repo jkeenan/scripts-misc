@@ -261,8 +261,10 @@ $downloads_dir //= (exists $ENV{DOWNLOADS_DIR} && (-d $ENV{DOWNLOADS_DIR}))
     ? $ENV{DOWNLOADS_DIR} : tempdir();
 unless (-d $downloads_dir) { croak "Could not locate downloads_dir '$downloads_dir'"; }
 else { say "downloads_dir:         $downloads_dir" if $verbose; }
-$host //= 'ftp.cpan.org';
-$hostdir //= 'pub/CPAN/modules/by-module';
+if (! defined $host or ! defined $hostdir) {
+    $host       = 'ftp.cpan.org';
+    $hostdir    = 'pub/CPAN/modules/by-module';
+}
 $verbose //= 0;
 
 if ($testing) {

@@ -426,7 +426,7 @@ my $pcfg_freebsd_usual = File::Spec->catfile($application_dir, qw| configs perlc
 open my $OUT, '>', $pcfg_freebsd_usual or croak "Unable to open $pcfg_freebsd_usual for writing";
 my $doc = <<EOF;
 ==
--Duseithreads -Doptimize="-O2 -pipe -fstack-protector -fno-strict-aliasing"
+-Duseithreads -Doptimize="-O2 -pipe -fstack-protector -fno-strict-aliasing" -Dcc="ccache clang -Qunused-arguments -fcolor-diagnostics"
 ==
 #-Uuseperlio
 #-Duse64bitint

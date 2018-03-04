@@ -282,6 +282,10 @@ else { # production
     if (! defined $application_dir) {
         $application_dir = File::Spec->catdir($cwd, 'p5smoke');
     }
+    else {
+        make_path($application_dir, { mode => 0711 })
+            unless -d $application_dir;
+    }
 }
 unless (-d $application_dir) { croak "Could not locate application_dir '$application_dir'"; }
 else { say "application_dir:       $application_dir" if $verbose; }
@@ -308,7 +312,6 @@ my $tslatest = $pdfd_object->get_latest_release( {
 } );
 croak "get_latest_release did not download Test-Smoke"
     unless -f $tslatest;
-say STDERR "XXX: $tslatest";
 system(qq|tar xzvf $tslatest|) and croak "Unable to unpack $tslatest";
 
 my $tarball = basename($tslatest);

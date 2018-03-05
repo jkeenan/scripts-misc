@@ -11,7 +11,7 @@ shell for the following purposes:
 
 You should treat these programs as **alpha** code and use accordingly.  I make
 no claim that they are as polished or efficient as, for example, the libraries
-I have released to [CPAN](http://search.cpan.org/~/jkeenan/)
+I have released to [CPAN](http://search.cpan.org/~/jkeenan/).
 
 # PROGRAMS
 
@@ -33,7 +33,7 @@ I have released to [CPAN](http://search.cpan.org/~/jkeenan/)
     this repository.  Once that program is run, change to the top-level of the
     newly installed `perl`.
 
-        $> cd ~/testing/my_branch
+        $> cd ~/testing/<my_branch>
         $> ./bin/cpanm List::Compare Text::CSV::Hashify <Other::CPAN::Module>
 
 - Provenance
@@ -98,7 +98,7 @@ See discussion of that program below.
         Prior existence of two directories whose names are assigned to environmental
         variables:
 
-        - &lt;$TESTINGDIR>
+        - `$TESTINGDIR`
 
             A directory underneath which you will have directories such as `blead`,
             `threaded_blead`, etc., each representing a particular build of `perl`
@@ -107,7 +107,7 @@ See discussion of that program below.
                 $> mkdir /home/<username>/testing/
                 $> export TESTINGDIR=/home/<username>/testing  # place in .bashrc or .shrc
 
-        - &lt;$SECONDARY\_CHECKOUT\_DIR>
+        - `$SECONDARY_CHECKOUT_DIR`
 
             A `git` checkout of the Perl 5 core distribution.  This is labelled
             _"secondary"_ in the belief that you will not want to risk harm to the `git`
@@ -123,13 +123,14 @@ See discussion of that program below.
             An integer such as 4 or 8, appropriate to the number of cores in your machine,
             which will determine how many jobs `make` will attempt to run in parallel.
     - Other items in PATH
-
-        `git`; `make`; `get_cpanm` (in this repository)
+        - `git(1)`
+        - `make(1)`
+        - `get_cpanm` (in this repository)
 - Usage
 
         $> install_branch_for_testing <branch>
 
-    If no value is provided for `branch`>, program will default to installing
+    If no value is provided for `branch`, program will default to installing
     `blead`.
 
 - Provenance

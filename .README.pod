@@ -20,7 +20,7 @@ Presentations to open-source conferences and user group meetings.
 
 You should treat these programs as B<alpha> code and use accordingly.  I make
 no claim that they are as polished or efficient as, for example, the libraries
-I have released to L<CPAN|http://search.cpan.org/~/jkeenan/>
+I have released to L<CPAN|http://search.cpan.org/~/jkeenan/>.
 
 =head1 PROGRAMS
 
@@ -44,7 +44,7 @@ This program is installed automatically via F<install_branch_for_testing> in
 this repository.  Once that program is run, change to the top-level of the
 newly installed F<perl>.
 
-    $> cd ~/testing/my_branch
+    $> cd ~/testing/<my_branch>
     $> ./bin/cpanm List::Compare Text::CSV::Hashify <Other::CPAN::Module>
 
 =item * Provenance
@@ -128,7 +128,7 @@ variables:
 
 =over 4
 
-=item * <$TESTINGDIR>
+=item * C<$TESTINGDIR>
 
 A directory underneath which you will have directories such as F<blead>,
 F<threaded_blead>, etc., each representing a particular build of F<perl>
@@ -137,7 +137,7 @@ Under each of the latter you will have F<bin> and F<lib>.  Example:
     $> mkdir /home/<username>/testing/
     $> export TESTINGDIR=/home/<username>/testing  # place in .bashrc or .shrc
 
-=item * <$SECONDARY_CHECKOUT_DIR>
+=item * C<$SECONDARY_CHECKOUT_DIR>
 
 A F<git> checkout of the Perl 5 core distribution.  This is labelled
 I<"secondary"> in the belief that you will not want to risk harm to the F<git>
@@ -162,7 +162,15 @@ which will determine how many jobs F<make> will attempt to run in parallel.
 
 =item * Other items in PATH
 
-F<git>; F<make>; F<get_cpanm> (in this repository)
+=over 4
+
+=item * F<git(1)>
+
+=item * F<make(1)>
+
+=item * F<get_cpanm> (in this repository)
+
+=back
 
 =back
 
@@ -170,7 +178,7 @@ F<git>; F<make>; F<get_cpanm> (in this repository)
 
     $> install_branch_for_testing <branch>
 
-If no value is provided for C<branch>>, program will default to installing
+If no value is provided for C<branch>, program will default to installing
 C<blead>.
 
 =item * Provenance

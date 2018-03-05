@@ -36,7 +36,7 @@ Installs CPAN-library installer F<cpanm> against a newly installed F<perl>.
 
 =item * Prerequisites
 
-F<wget>.
+F<wget(1)>.
 
 =item * Usage
 
@@ -60,11 +60,41 @@ adapted from Florian Ragwitz and Karl Williamson.
 
 =item * Purpose
 
+Alternative F<Test-Smoke> configuration; get quickly set up to smoke-test the
+Perl 5 core distribution.
+
 =item * Prerequisites
+
+=over 4
+
+=item * CPAN libraries not found in Perl 5 core distribution
+
+    $> cpan Perl::Download::FTP::Distribution \
+        CGI::Util JSON JSON::XS System::Info \
+        HTTP::Daemon HTTP::Message Test::NoWarnings
+
+=item * Environmental Variables
+
+The program presumes that your home directory can be located in an
+environmental variable known as C<$HOMEDIR>.  If that is not the case, then
+call:
+
+    $> export HOMEDIR=/home/<username>
+
+=back
 
 =item * Usage
 
+    $> export APPLICATION_DIR=/home/<username>/p5smoke
+    $> ./get-test-smoke --application_dir=$APPLICATION_DIR
+    $> cd $APPLICATION_DIR
+    $> sh ./smokecurrent.sh
+
+For more information:  F<perldoc get-test-smoke>.
+
 =item * Provenance
+
+L<Test-Smoke|http://search.cpan.org/dist/Test-Smoke/>.
 
 =back
 
@@ -93,7 +123,8 @@ libraries.
 
 =item * Directories
 
-Prior existence of two directories whose names are assigned to environmental variables:
+Prior existence of two directories whose names are assigned to environmental
+variables:
 
 =over 4
 
@@ -103,8 +134,8 @@ A directory underneath which you will have directories such as F<blead>,
 F<threaded_blead>, etc., each representing a particular build of F<perl>
 Under each of the latter you will have F<bin> and F<lib>.  Example:
 
-    $> mkdir /home/username/testing/
-    $> export TESTINGDIR=/home/username/testing  # place in .bashrc or .shrc
+    $> mkdir /home/<username>/testing/
+    $> export TESTINGDIR=/home/<username>/testing  # place in .bashrc or .shrc
 
 =item * <$SECONDARY_CHECKOUT_DIR>
 
@@ -112,9 +143,9 @@ A F<git> checkout of the Perl 5 core distribution.  This is labelled
 I<"secondary"> in the belief that you will not want to risk harm to the F<git>
 checkout you use for everyday Perl 5 core development.  Example:
 
-    $> cd /home/username/gitwork
+    $> cd /home/<username>/gitwork
     $> git clone git://perl5.git.perl.org/perl.git perl2
-    $> export SECONDARY_CHECKOUT_DIR=/home/username/gitwork/perl2
+    $> export SECONDARY_CHECKOUT_DIR=/home/<username>/gitwork/perl2
 
 =back
 
@@ -156,11 +187,34 @@ Adapted from Florian Ragwitz and Karl Williamson.
 
 =item * Purpose
 
+Convert POD into F<.pdf>, F<.html>, F<.txt> and F<.odt> files simultaneously.
+
 =item * Prerequisites
+
+=over 4
+
+=item * F<pandoc(1)>
+
+A general markup converter documented at L<http://pandoc.org>.  Install with
+your operating system's ports installer.
+
+=item * F<Pod::Pandoc(3)>
+
+CPAN distribution L<Pod-Pandoc|http://search.cpan.org/dist/Pod-Pandoc/>, which
+provides utility F<pod2pandoc(1)>.
+
+=back
 
 =item * Usage
 
-=item * Provenance
+    multipandoc \
+      --sourcedir=/home/<username>/p5-codebase-health \
+      --podfile=p5-codebase-health.pod \
+      --outputdir=/home/<username>/tmp \
+      --stub=p5-codebase-health \
+      --verbose
+
+For more information:  F<perldoc multipandoc>.
 
 =back
 

@@ -1,0 +1,168 @@
+=head1 README for jkeenan/scripts-misc
+
+This repository contains publicly accessible programs I have written and which
+are available under the terms (MIT license) described in the F<LICENSE> file.
+
+These are executable programs written either in Perl 5 or Bourne-compatible
+shell for the following purposes:
+
+=over 4
+
+=item *
+
+Ongoing maintenance and development of the Perl 5 core distribution.
+
+=item *
+
+Presentations to open-source conferences and user group meetings.
+
+=back
+
+You should treat these programs as B<alpha> code and use accordingly.  I make
+no claim that they are as polished or efficient as, for example, the libraries
+I have released to L<CPAN|http://search.cpan.org/~/jkeenan/>
+
+=head1 PROGRAMS
+
+=head2 Perl 5 Core Distribution Aids
+
+=head3 C<get_cpanm>
+
+=over 4
+
+=item * Purpose
+
+Installs CPAN-library installer F<cpanm> against a newly installed F<perl>.
+
+=item * Prerequisites
+
+F<wget>.
+
+=item * Usage
+
+This program is installed automatically via F<install_branch_for_testing> in
+this repository.  Once that program is run, change to the top-level of the
+newly installed F<perl>.
+
+    $> cd ~/testing/my_branch
+    $> ./bin/cpanm List::Compare Text::CSV::Hashify <Other::CPAN::Module>
+
+=item * Provenance
+
+L<http://search.cpan.org/~miyagawa/Menlo-1.9005/script/cpanm-menlo> and 
+adapted from Florian Ragwitz and Karl Williamson.
+
+=back
+
+=head3 C<get-test-smoke>
+
+=over 4
+
+=item * Purpose
+
+=item * Prerequisites
+
+=item * Usage
+
+=item * Provenance
+
+=back
+
+=head3 C<install_blead_for_testing>
+
+Exactly equivalent to:
+
+    $> install_branch_for_testing blead
+
+See discussion of that program below.
+
+=head3 C<install_branch_for_testing>
+
+=over 4
+
+=item * Purpose
+
+Installs a branch of the Perl 5 core distribution for testing purposes,
+then installs F<cpanm> against the newly installed F<perl>.  Useful in
+assessing whether code in a branch might have a negative impact on CPAN
+libraries.
+
+=item * Prerequisites
+
+=over 4
+
+=item * Directories
+
+Prior existence of two directories whose names are assigned to environmental variables:
+
+=over 4
+
+=item * <$TESTINGDIR>
+
+A directory underneath which you will have directories such as F<blead>,
+F<threaded_blead>, etc., each representing a particular build of F<perl>
+Under each of the latter you will have F<bin> and F<lib>.  Example:
+
+    $> mkdir /home/username/testing/
+    $> export TESTINGDIR=/home/username/testing  # place in .bashrc or .shrc
+
+=item * <$SECONDARY_CHECKOUT_DIR>
+
+A F<git> checkout of the Perl 5 core distribution.  This is labelled
+I<"secondary"> in the belief that you will not want to risk harm to the F<git>
+checkout you use for everyday Perl 5 core development.  Example:
+
+    $> cd /home/username/gitwork
+    $> git clone git://perl5.git.perl.org/perl.git perl2
+    $> export SECONDARY_CHECKOUT_DIR=/home/username/gitwork/perl2
+
+=back
+
+=item * Other environmental variables
+
+=over 4
+
+=item * C<$TEST_JOBS>
+
+An integer such as 4 or 8, appropriate to the number of cores in your machine,
+which will determine how many jobs F<make> will attempt to run in parallel.
+
+=back
+
+=item * Other items in PATH
+
+F<git>; F<make>; F<get_cpanm> (in this repository)
+
+=back
+
+=item * Usage
+
+    $> install_branch_for_testing <branch>
+
+If no value is provided for C<branch>>, program will default to installing
+C<blead>.
+
+=item * Provenance
+
+Adapted from Florian Ragwitz and Karl Williamson.
+
+=back
+
+=head2 Conference Presentation Aids
+
+=head3 C<multipandoc>
+
+=over 4
+
+=item * Purpose
+
+=item * Prerequisites
+
+=item * Usage
+
+=item * Provenance
+
+=back
+
+=cut
+

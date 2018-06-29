@@ -89,18 +89,33 @@ standard F<Test-Smoke> run.
 
 Before running F<get-test-smoke> you should install the non-Perl-5-core
 modules which are prerequisites for F<Test-Smoke> or which this program itself
-requires.  You should be able to use F<cpan>, F<cpanm> or F<cpanplus>.  Some
-of these modules have been ported to operating systems like Debian Linux,
-FreeBSD and OpenBSD, and those systems' ports installation programs can also
-be used.  Example:
+requires.  You should be able to use F<cpan>, F<cpanm> or F<cpanplus>.
+Example:
 
-    $> cpan Perl::Download::FTP::Distribution \
+    $> sudo cpan Perl::Download::FTP::Distribution \
         CGI::Util JSON JSON::XS System::Info \
         HTTP::Daemon HTTP::Message Test::NoWarnings
 
+Some of these modules have been ported to operating systems like Debian Linux,
+FreeBSD and OpenBSD, and those systems' ports installation programs can also
+be used.  For example, here is a case where, on FreeBSD-11, FreeBSD packages
+were used where available and CPAN libraries where not:
+
+    $> sudo pkg install p5-CGI-Utils \
+        p5-JSON \
+        p5-JSON-XS \
+        p5-System-Info \
+        p5-HTTP-Daemon \
+        p5-HTTP-Message \
+        p5-Test-NoWarnings
+
+    $> sudo cpan Perl::Download::FTP::Distribution
+
 =item * Environmental Variables
 
-The program presumes that your home directory can be located in an environmental variable known as C<$HOMEDIR>.  If that is not the case, then call:
+The program presumes that your home directory can be located in an
+environmental variable known as C<$HOMEDIR>.  If that is not the case, then
+call:
 
     $> export HOMEDIR=/home/username
 
@@ -108,9 +123,16 @@ The program presumes that your home directory can be located in an environmental
 
 =head2 Installation
 
-Once you have downloaded this program from Github you should be able to run it from any directory.  The simplest usage is:
+Once you have downloaded this program from Github you should be able to run it
+from any directory.  The simplest usage is:
 
     ./get-test-smoke --application_dir=/path/to/directory
+
+As a precaution against overwriting existing smoke test data,
+F<get-test-smoke> will throw an exception if the value provided for
+C<application_dir> is an already existing directory.  So you don't need to
+create C<application_dir> before calling the program; the program will create
+the directory for you.
 
 =head2 Command-Line Options
 
@@ -167,7 +189,9 @@ omit this.  Defaults to off.
 
 =head2 Run your first smoke test
 
-At this point you should be able to change to the directory named as C<application_dir> and kick off a short (30-40 minutes) smoke test of Perl 5 F<blead>.
+At this point you should be able to change to the directory named as
+C<application_dir> and kick off a short (30-40 minutes) smoke test of Perl 5
+F<blead>.
 
     $> cd /home/username/p5smoke
     $> sh ./smokecurrent.sh
@@ -203,8 +227,8 @@ WHAT ARE THE DEFAULTS?
 
 =item *
 
-Creates a directory and symlink structure underneath C<application_dir> reflecting the
-values in F<smokecurrent_config>.
+Creates a directory and symlink structure underneath C<application_dir>
+reflecting the values in F<smokecurrent_config>.
 
 This directory structure differs from that in a standard F<Test-Smoke>
 installation in the following ways:

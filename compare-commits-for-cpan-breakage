@@ -1,0 +1,164 @@
+#!/usr/bin/env perl
+use 5.14.0;
+use warnings;
+use Data::Dumper;$Data::Dumper::Indent=1;
+use Data::Dump ( qw| dd pp| );
+use Carp;
+use Cwd;
+use File::Spec;
+use File::Temp qw(tempdir);
+use Getopt::Long;
+
+=head1 NAME 
+
+compare-commits-for-cpan-breakage
+
+=head1 USAGE
+
+    $> perl compare-commits-for-cpan-breakage \
+        --modules_file=/path/to/modules-for-cpanm \
+        --commit1=v5.28.0 \
+        --commit2=v5.29.0 \
+        --gitdir=/home/username/gitwork/perl \
+        --testingdir=/home/username/testing \
+        --outputdir=/home/username/outputdir \
+        --verbose=1
+
+=head1 DESCRIPTION
+
+=head2 Purpose
+
+Given:
+
+=over 4
+
+=item 1
+
+a file containing a list of CPAN modules suitable for passing as
+arguments to the F<cpanm> utility; and
+
+=item 2
+
+two distinct commits to the Perl 5 git repository
+
+=back
+
+... build each version of F<perl>, install F<cpanm> against each, then attempt to
+install the list of modules in the file against each in turn.  Parse the
+results so as to make easily available changes in modules' grades between the
+two versions.
+
+=cut
+
+=head2 Typical Case
+
+Suppose that you have a subset of CPAN modules which presumably share subject
+matter.  For example, you can hypothesize that the set of all CPAN modules
+whose names start with F<Encode> or F<Encoding> are concerned with non-ASCII
+encodings.  You want to make a change to Perl 5 blead which is likely to have
+an impact on those modules, for better or worse.  If you can test those
+modules against your starting point, then re-test them after your commit,
+comparing the results can give you an advance warning about possible Blead
+Breaks CPAN (BBC) situations.
+
+=cut
+
+my ($modules_file, $commit1, $commit2, $gitdir, $testingdir,
+    $outputdir, $base_configure_command,
+    $cpanm_url, $cpanm_module) =
+    (undef) x 9;
+my ($verbose, $rebuild) = ('') x 2;
+
+GetOptions(
+    "modules_file=s"    => \$modules_file,
+    "commit1=s"         => \$commit1,
+    "commit2=s"         => \$commit2,
+    "gitdir=s"          => \$gitdir,
+    "testingdir=s"      => \$testingdir,
+    "outputdir=s"       => \$outputdir,
+    "configure_command" => \$base_configure_command,
+    "verbose"           => \$verbose,
+    "rebuild"           => \$rebuild,
+    "cpanm_url"         => \$cpanm_url,
+    "cpanm_module"      => \$cpanm_module,
+) or croak "Unable to process command-line options";
+
+#say join '|' => ($modules_file, $commit1, $commit2, $gitdir, $testingdir, $outputdir);
+unless (-f $modules_file) {
+    croak "Cannot locate modules_file $modules_file";
+}
+else {
+    say "modules_file: $modules_file" if $verbose;
+}
+for my $dir ($gitdir, $testingdir, $outputdir) {
+    if (! -d $dir) {
+        croak "Cannot locate directory $dir";
+    }
+    else {
+        say "Located $dir" if $verbose;
+    }
+}
+my $gitconfig = File::Spec->catfile($gitdir, '.git', 'config');
+unless (-f $gitconfig) {
+    croak "$gitdir does not appear to be a git repository";
+}
+else {
+    say "Located $gitconfig" if $verbose;
+}
+
+#./Configure -des -Dusedevel -Uversiononly -Dprefix=${BRANCHDIR} -Dman1dir=none -Dman3dir=none
+
+$base_configure_command //= './Configure -des -Dusedevel -Uversiononly -Dman1dir=none -Dman3dir=none';
+say "Will base configuration on: $base_configure_command" if $verbose;
+
+$cpanm_url      //= 'http://cpansearch.perl.org/src/MIYAGAWA/App-cpanminus-1.7044/bin/cpanm';
+$cpanm_module   //= 'App::cpanminus';
+
+chdir $gitdir or croak "Unable to change to $gitdir";
+system(qq|git bisect reset|) and croak "Unable to terminate git bisect via reset";
+for my $build ($commit1, $commit2) {
+    system(qq|git checkout blead|) and croak "Unable to git checkout blead";
+    system(qq|git clean -dfx 1>/dev/null|) and croak "Unable to git clean";
+    system(qq|git checkout $build|) and croak "Unable to git checkout $build";
+    my $this_testdir = File::Spec->catdir($testingdir, $build);
+    if ((! -d $this_testdir) or $rebuild) {
+        my $this_configure_command = "$base_configure_command -Dprefix=$this_testdir";
+        say "Configuring and building perl to install in $this_testdir" if $verbose;
+        system(qq|$this_configure_command|) and croak "Unable to configure for $build";
+        my $this_make_install_command = "make -j$ENV{TEST_JOBS} install";
+        system(qq|$this_make_install_command|) and croak "Unable to make install for $build";
+        my $bindir = File::Spec->catdir($this_testdir, 'bin');
+        unless (-d $bindir) {
+            croak "Did not create directory $bindir";
+        }
+        else {
+            say "Located directory $bindir" if $verbose;
+        }
+        my $this_perl = File::Spec->catfile($bindir, 'perl');
+        unless (-e $this_perl) {
+            croak "Unable to locate perl executable $this_perl";
+        }
+        else {
+            say "Located perl executable $this_perl" if $verbose;
+        }
+        local $ENV{PERL_CPANM_HOME}         = File::Spec->catdir($this_testdir, '.cpanm');
+        local $ENV{PERL_CPAN_REPORTER_DIR}  = File::Spec->catdir($this_testdir, '.cpanreporter');
+        #wget -P bin -O - http://cpansearch.perl.org/src/MIYAGAWA/App-cpanminus-1.7044/bin/cpanm | \
+        #    ./bin/perl - App::cpanminus
+        my $get_cpanm_command = "wget -P $bindir -O - $cpanm_url | $this_perl - $cpanm_module";
+        system(qq{$get_cpanm_command}) and croak "Unable to wget and install cpanm";
+        my $this_cpanm = File::Spec->catfile($bindir, 'cpanm');
+        unless (-e $this_cpanm) {
+            croak "Unable to locate perl executable $this_cpanm";
+        }
+        else {
+            say "Located perl executable $this_cpanm" if $verbose;
+        }
+    }
+    else {
+        say "Using perl already installed in $this_testdir" if $verbose;
+    }
+}
+
+say "Finished!" if $verbose;
+

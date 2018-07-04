@@ -1,0 +1,77 @@
+#!/bin/sh
+
+# Downloads and installs a dev release under ~/tmp.
+# Name of version should match
+# /^perl-5.(\d{2})\.(\d+)(-RC\d+)?/ where $1 is odd number.
+# Replaces any previous perl installed there.
+
+# Assumes existence of these environmental variables:
+# $HOMEDIR
+#   Your home directory
+# $DOWNLOADS_DIR
+#   A directory which is preset to the location to which files are downloaded
+# $TEST_JOBS
+#   An integer such as 4 or 8, appropriate to the number of cores in your
+#   machine, which will determine how many jobs 'make' will attempt to run in
+#   parallel.
+# Assumes presence of these program locatable from PATH:
+#   make
+
+# Don't let me use uninit vars, and any error is a problem
+set -u
+set -e
+# Print expanded commands
+set -x
+
+# Sanity checks
+if [ ! -d $DOWNLOADS_DIR ]; then
+  echo "FAILED:  could not locate DOWNLOADS_DIR"
+  exit 1
+fi
+
+#command -v get_cpanm > /dev/null || \
+#    {
+#        echo "FAILED:  could not locate 'get_cpanm' in PATH"
+#        exit 1
+#    }
+
+if [ "$#" -gt 0 ]; then
+    PERL_VERSION="$1"
+else
+    echo "Must supply Perl dev or RC version, e.g., perl-5.29.0"
+    exit 1
+fi
+
+echo "Handling Perl version: $PERL_VERSION"
+
+MY_TMP_DIR=$HOMEDIR/tmp
+if [ ! -d $MY_TMP_DIR ]; then
+  echo "FAILED:  could not locate MY_TMP_DIR"
+  exit 1
+fi
+PREFIX_DIR=$MY_TMP_DIR/${PERL_VERSION}
+if [ -d $PREFIX_DIR ]; then
+    rm -rfv $PREFIX_DIR
+fi
+
+echo $PERL_VERSION $MY_TMP_DIR $PREFIX_DIR
+
+cd $DOWNLOADS_DIR; ls -ltr | tail -20
+if [ -d $PERL_VERSION ]; then
+    rm -rfv $PERL_VERSION
+fi
+wget ftp://ftp.funet.fi/pub/CPAN/src/5.0/${PERL_VERSION}.tar.gz
+tar xzvf ${PERL_VERSION}.tar.gz
+cd $PERL_VERSION
+
+sh ./Configure -des -Dusedevel -Uversiononly -Dprefix=$PREFIX_DIR -Dman1dir=none -Dman3dir=none
+make -j${TEST_JOBS} install
+
+cd $PREFIX_DIR
+echo "Now in: $PREFIX_DIR"
+
+CPANM_URL="http://cpansearch.perl.org/src/MIYAGAWA/App-cpanminus-1.7044/bin/cpanm"
+wget -P ./bin -O - $CPANM_URL | ./bin/perl - App::cpanminus
+chmod 0755 ./bin/cpanm
+mkdir -p .cpanm .cpanreporter
+cd

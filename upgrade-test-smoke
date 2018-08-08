@@ -1,0 +1,410 @@
+#!/usr/bin/env perl
+use 5.14.0;
+use warnings;
+our $VERSION = '0.01';
+use Carp;
+use Config;
+use Cwd;
+use Getopt::Long;
+use File::Basename;
+use File::Compare;
+use File::Copy;
+use File::Find;
+use File::Path qw(make_path);
+use File::Spec 0.82;
+use File::Temp qw(tempdir);
+use Path::Tiny;
+use Perl::Download::FTP::Distribution 0.04;
+
+BEGIN {
+    # Test::Smoke prerequisites not found in Perl 5 core
+    use CGI::Util;
+    use JSON;
+    use JSON::XS;
+    use System::Info 0.05;
+    use HTTP::Daemon;
+    use HTTP::Message;
+    eval "require Test::NoWarnings;"
+}
+
+=head1 NAME
+
+upgrade-test-smoke - Upgrade version of Test::Smoke installed via F<get-test-smoke>
+
+=head1 SYNOPSIS
+
+    ./upgrade-test-smoke --application_dir=/home/username/p5smoke
+
+=head1 DESCRIPTION
+
+=head2 Status
+
+This is B<alpha> code.  YMMV.
+
+=head2 Background
+
+L<get-test-smoke|https://github.com/jkeenan/scripts-misc/blob/master/get-test-smoke>
+is a program found in the same L<github.com> repository as this program.  It
+downloads and installs CPAN library
+L<Test-Smoke|https://metacpan.org/release/Test-Smoke> which has long served as
+the basis for L<smoke-testing the Perl 5 core
+distribution|http://perl5.test-smoke.org/search>.  F<upgrade-test-smoke> is a
+complement to F<get-test-smoke>.  It upgrades in place the Test::Smoke
+libraries you installed with F<get-test-smoke>.
+
+=head1 USAGE
+
+=head2 Pre-Installation
+
+=over 4
+
+=item * Prerequisite Libraries
+
+Before running F<upgrade-test-smoke> you should install the non-Perl-5-core
+modules which are prerequisites for F<Test-Smoke> or which this program itself
+requires.  In point of fact, if you have already installed and used
+F<get-test-smoke>, you should already have those modules installed, so please
+read the documentation for F<get-test-smoke> for further information.
+
+=item * Environmental Variables
+
+Like F<get-test-smoke>, this program presumes that your home directory can be located in an
+environmental variable known as C<$HOMEDIR>.  If that is not the case, then
+call:
+
+    $> export HOMEDIR=/home/username
+
+=back
+
+=head2 Installation
+
+Once you have downloaded this program from Github you should be able to run it
+from any directory.  The simplest usage is:
+
+    ./upgrade-test-smoke --application_dir=/path/to/directory
+
+=head2 Command-Line Options
+
+The following command-line options are available:
+
+=over 4
+
+=item * C<downloads_dir>
+
+I<Optional.> Path to the directory to which you want the F<Test-Smoke> tarball
+to be downloaded.  If not specified, falls back to, first, a directory named
+in an environmental variable C<$DOWNLOADS_DIR> and then to a temporary
+directory created via C<File::Temp::tempdir()>.
+
+    --download_dir=/home/username/Downloads
+
+=item * C<application_dir>
+
+I<Required.> Path to the directory where you already have F<Test-Smoke> 
+installed.  (The F<Test-Smoke> documentation recommends installing the library
+in a I<non-standard> location, I<i.e.,> I<not> the location that would be
+chosen automatically by F<cpan> or F<cpanm>.)
+
+=item * C<host> and C<hostdir>
+
+These two switches are I<optional> but if used, must be used together.
+
+F<get-test-smoke> downloads F<Test-Smoke> from a CPAN mirror via FTP.
+Defaults to:
+
+    --host=ftp.cpan.org --hostdir=pub/CPAN/modules/by-module
+
+But you can select any FTP mirror as C<host> I<provided> that you supply the
+appropriate value for C<hostdir> as well.  Example:
+
+    --host=ftp.funet.fi --hostdir=pub/languages/perl/CPAN/modules/by-module
+
+-item * C<local_archive>
+
+I<Optional.>  Path to a tarball of the F<Test-Smoke> distribution either
+already downloaded from CPAN or created by the user to test new F<Test::Smoke>
+functionality.
+
+    --local_archive=/home/username/tmp/Test-Smoke-1.72_001.tar.gz
+
+=item * C<verbose>
+
+I<Optional.>  Extra information on C<STDOUT> while the program is running.
+Once you have used the program several times, you will probably be able to
+omit this.  Defaults to off.
+
+=back
+
+=head1 ADVANCED USAGE
+
+=head2 What Does the Program Do?
+
+=over 4
+
+=item *
+
+The program validates the command-line options.
+
+=item *
+
+Unless the C<tarball> option is provided, the program downloads the latest release of
+F<Test-Smoke> from the FTP mirror identified by C<host> and C<hostdir> to the
+directory named in C<downloads_dir>.
+
+=item *
+
+The program unpacks the tarball and compares the following files with those
+already installed underneath C<application_dir>:
+
+=over 4
+
+=item * All Perl module files (C<*.pm>) under F<lib/>.
+
+=item * All Perl program files (C<*.pl>) in the top-level of the distribution.
+
+=back
+
+As a sanity check, the program first confirms that the $VERSION found in
+F<lib/Test/Smoke.pm> in the unpacked tarball is greater than that found
+underneath the C<application_dir>.
+
+Only C<.pm> and C<.pl> files which have changed are scheduled for
+installation.  No configuration files, F<logs/smokecurrent/*> files or shell
+scripts are scheduled for change.
+
+=item *
+
+The program renames the existing C<*.pm> and C<*.pl> files scheduled for
+upgrading with a F<.bak> extension.  The program then copies the newer
+versions of those files into position.
+
+=back
+
+=cut
+
+croak 'Environmental variable $HOMEDIR not defined'
+    unless (exists $ENV{HOMEDIR} and (-d $ENV{HOMEDIR}));
+my $cwd = cwd();
+
+my ($downloads_dir, $host, $hostdir, $application_dir, $local_archive, $verbose);
+GetOptions(
+    "downloads_dir=s"   => \$downloads_dir,
+    "application_dir=s" => \$application_dir,
+    "host=s"            => \$host,
+    "hostdir=s"         => \$hostdir,
+    "local_archive=s"   => \$local_archive,
+    "verbose"           => \$verbose,
+) or croak "Unable to get options";
+
+# Validate options
+if (! defined $application_dir) {
+    my $msg = "$0 presumes existence of directory holding current Test::Smoke application;";
+    $msg .= "\n  specify value for '--application_dir'";
+    croak $msg;
+}
+else {
+    unless (-d $application_dir) {
+        my $current = File::Spec->catfile($application_dir, 'lib', 'Test', 'Smoke.pm');
+        croak "Unable to find lib/Test/Smoke.pm underneath $application_dir"
+            unless (-f $current);
+    }
+    else {
+        say "Upgrading Test::Smoke application in $application_dir" if $verbose;
+    }
+}
+
+$verbose //= 0;
+
+my $tarball;
+if (! defined $local_archive) {
+
+    # We only need to validate --downlaods_dir, --host and --hostdir
+    # if we're actually downloading a tarball from CPAN.
+
+    $downloads_dir //= (exists $ENV{DOWNLOADS_DIR} && (-d $ENV{DOWNLOADS_DIR}))
+        ? $ENV{DOWNLOADS_DIR} : tempdir();
+    unless (-d $downloads_dir) { croak "Could not locate downloads_dir '$downloads_dir'"; }
+    else { say "downloads_dir:          $downloads_dir" if $verbose; }
+    
+    if (! defined $host or ! defined $hostdir) {
+        $host       = 'ftp.cpan.org';
+        $hostdir    = 'pub/CPAN/modules/by-module';
+    }
+    chdir $downloads_dir or croak "Could not change to $downloads_dir";
+    
+    # download Test-Smoke via FTP
+    my $pdfd_object = Perl::Download::FTP::Distribution->new( {
+        host            => $host,
+        dir             => $hostdir,
+        distribution    => 'Test-Smoke',
+        verbose         => $verbose,
+    } );
+    croak "Could not create Perl::Download::FTP::Distribution object"
+        unless defined $pdfd_object;
+    if ($verbose) {
+        say sprintf("%-24s%s" => 'host:', $host);
+        say sprintf("%-24s%s" => 'hostdir:', $hostdir);
+    }
+    
+    my $tslatest = $pdfd_object->get_latest_release( {
+        verbose         => $verbose,
+        path            => $downloads_dir,
+    } );
+    croak "get_latest_release did not download Test-Smoke"
+        unless -f $tslatest;
+    system(qq|tar xzvf $tslatest|) and croak "Unable to unpack $tslatest";
+    
+    $tarball = basename($tslatest);
+}
+else {
+    croak "Could not find Test-Smoke tarball at $local_archive"
+        unless (-f $local_archive);
+    say "Handling local archive found at $local_archive" if $verbose;
+    system(qq|tar -C $downloads_dir -xzvf $local_archive|)
+        and croak "Unable to unpack $local_archive";
+    $tarball = basename($local_archive);
+}
+
+my ($distvname) = $tarball =~ m/(.+?)\.(?:tar\.(?:g?z|bz2)|zip|tgz)$/i;
+croak "Unable to identify distvname" unless length($distvname);
+my $workdir = File::Spec->catdir($downloads_dir, $distvname);
+if ($verbose) {
+    say sprintf("%-24s%s" => 'tarball:', $tarball);
+    say sprintf("%-24s%s" => 'distvname:', $distvname);
+    say sprintf("%-24s%s" => 'workdir:', $workdir);
+}
+
+my %compares_pl = ();
+my %dirs = (
+    old => $application_dir,
+    new => File::Spec->catdir($workdir, 'bin'),
+);
+for my $d (keys %dirs) {
+    chdir $dirs{$d} or croak "Unable to chdir to $dirs{$d}";
+    opendir my $DIRH, $dirs{$d} or croak "Unable to read $dirs{$d}";
+    my @toplevel_pl = grep { m/\.pl$/ } readdir $DIRH;
+    closedir $DIRH or croak "Unable to close $dirs{$d}";
+    for (@toplevel_pl) {$compares_pl{$d}{$_}{path} = File::Spec->catfile($dirs{$d}, $_);}
+}
+for my $k (keys %{$compares_pl{new}}) {
+    if (! exists $compares_pl{old}{$k}) {
+        say "No existing .pl equivalent to $k";
+        $compares_pl{old}{$k}{no_new}++;
+    }
+    else {
+        my $rv = compare_pl(\%compares_pl, $k);
+        if ($rv == 0) {
+            $compares_pl{new}{$k}{differ} = 0;
+        }
+        else {
+            say "$compares_pl{old}{$k}{path} and $compares_pl{new}{$k}{path} differ"
+                if $verbose;
+            $compares_pl{new}{$k}{differ} = 1;
+        }
+    }
+}
+
+my %compares_pm = ();
+%dirs = (
+    old => File::Spec->catdir($application_dir, 'lib'),
+    new => File::Spec->catdir($workdir, 'lib'),
+);
+my %counts = (
+    old => scalar(File::Spec->splitdir($application_dir)),
+    new => scalar(File::Spec->splitdir($workdir)),
+);
+for my $d (keys %dirs) {
+    my $wanted = sub {
+        #$_ =~ m/\.pm$/ and $compares_pm{$d}{$File::Find::name}{path} = $File::Find::name;
+        if ($_ =~ m/\.pm$/) {
+            my @dirs = File::Spec->splitdir($File::Find::dir);
+            #say "$d: XXX: $File::Find::name: @dirs";
+            my @relevant_dirs = @dirs[ $counts{$d} .. $#dirs ];
+            #say "$d: YYY: $File::Find::name: @relevant_dirs";
+            my $k =  File::Spec->catfile(@relevant_dirs, $_);
+            $compares_pm{$d}{$k}{path} = $File::Find::name;
+        }
+    };
+    find($wanted, $dirs{$d});
+}
+
+for my $k (keys %{$compares_pm{new}}) {
+    if (! exists $compares_pm{old}{$k}) {
+        say "No existing .pm equivalent to $k";
+        $compares_pm{old}{$k}{no_new}++;
+    }
+    else {
+        my $rv = compare(
+            $compares_pm{old}{$k}{path},
+            $compares_pm{new}{$k}{path},
+        );
+        if ($rv == 0) {
+            $compares_pm{new}{$k}{differ} = 0;
+        }
+        else {
+            $compares_pm{new}{$k}{differ} = 1;
+            $compares_pm{new}{$k}{oldpath} = $compares_pm{old}{$k}{path};
+        }
+    }
+}
+
+if ($verbose) {
+    say "\nDifferences between installed and new versions of modules:";
+    for my $pm (sort keys %{$compares_pm{new}}) {
+        if ($compares_pm{new}{$pm}{differ}) {
+            say "";
+            say "  $compares_pm{new}{$pm}{oldpath}";
+            say "    versus";
+            say "  $compares_pm{new}{$pm}{path}";
+        }
+    }
+}
+
+for my $pm (sort keys %{$compares_pm{new}}) {
+    if ($compares_pm{new}{$pm}{differ}) {
+        my $backup = $compares_pm{new}{$pm}{oldpath} . '.bak';
+        move $compares_pm{new}{$pm}{oldpath} => $backup
+            or croak "Unable to rename $compares_pm{new}{$pm}{oldpath} to $backup";
+        copy $compares_pm{new}{$pm}{path} => $compares_pm{new}{$pm}{oldpath}
+            or croak "Unable to copy $compares_pm{new}{$pm}{path} to $compares_pm{new}{$pm}{oldpath}";
+    }
+}
+
+say "Finished" if $verbose;
+
+########## SUBROUTINES ##########
+
+sub compare_pl {
+    my ($compares, $k) = @_;
+    my $oldraw = $compares->{old}{$k}{path};
+    my $newraw = $compares->{new}{$k}{path};
+    my @oldlines = path($oldraw)->lines_utf8;
+    my @newlines = path($newraw)->lines_utf8;
+    return 1 if scalar(@oldlines) != scalar(@newlines);
+    for (my $i = 1; $i <= $#oldlines; $i++) {
+        return 1 if $oldlines[$i] ne $newlines[$i];
+    }
+    return 0;
+}
+
+
+=head1 AUTHOR, COPYRIGHT and LICENSE
+
+=head2 Author
+
+    Name:           James E Keenan
+    CPANID:         JKEENAN
+    Email:          jkeenan at cpan dot org
+    Website:        http://thenceforward.net/perl/
+    Repository:     https://github.com/jkeenan/scripts-misc
+
+=head2 Copyright
+
+Copyright 2018, James E Keenan.  All rights reserved.
+
+=head2 License
+
+See: L<https://github.com/jkeenan/scripts-misc/blob/master/LICENSE>
+
+=cut
+

@@ -2,7 +2,7 @@
 use strict;
 use warnings;
 use v5.10.1;
-our $VERSION = '0.03';
+our $VERSION = '0.04';
 use Carp;
 use Getopt::Long;
 use Cwd;
@@ -23,9 +23,9 @@ multipandoc - Convert POD simultaneously into .pdf, .html, .txt and .odt
 
 =head1 DESCRIPTION
 
-This program simultaneously transforms a file written in Perl's Plain Old
-Documentation (POD) format into documents in PDF, HTML, plain-text and
-OpenOffice formats.
+This program takes as input a file written in Perl's Plain Old Documentation
+(POD) format and simultaneously translate the content into documents in PDF,
+HTML, plain-text and OpenOffice formats.
 
 =head2 Prerequisites
 
@@ -38,9 +38,11 @@ Please install F<pandoc> with your operating system's ports system.  Then
 install F<Pod-Pandoc> via F<cpan Pod::Pandoc> or an equivalent operating
 system port.
 
+Requires F<perl-5.10.1> or later.
+
 =head2 Installation
 
-Place this file somewhere in your PATH and make it executable.
+Place this file somewhere in your C<PATH> and make it executable.
 
 =head2 Command-Line Options
 
@@ -121,19 +123,20 @@ say "\nFinished" if $verbose;
 sub usage {
     my $usage = <<'END_OF_USAGE';
 multipandoc \
-  --sourcedir=/home/username/p5-codebase-health \
-  --podfile=p5-codebase-health.pod \
+  --sourcedir=/home/username/p5-my-project \
+  --podfile=p5-my-project.pod \
   --outputdir=/home/username/tmp \
-  --stub=p5-codebase-health \
+  --stub=p5-my-project \
   --verbose
 END_OF_USAGE
+    say STDERR "Usage:\n";
     say STDERR $usage;
     exit 1;
 }
 
 =head1 COPYRIGHT
 
-Copyright 2016-18, James E Keenan (jkeenan at cpan dot org)
+Copyright 2016-19, James E Keenan (jkeenan at cpan dot org)
 
 =cut
 

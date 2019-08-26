@@ -17,5 +17,5 @@
 
 # Adapted from Florian Ragwitz and Karl Williamson
 
-wget -P bin -O - http://cpansearch.perl.org/src/MIYAGAWA/App-cpanminus-1.7043/bin/cpanm | \
+wget -P bin -O - http://search.mcpan.org/src/MIYAGAWA/App-cpanminus-1.7043/bin/cpanm | \
     ./bin/perl - App::cpanminus

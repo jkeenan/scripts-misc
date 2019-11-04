@@ -20,6 +20,7 @@ while (my $l = <$IN>) {
     $HEAD = $1;
     last;
 }
+close $IN or die "Unable to close $blog after reading";
 my $message = <<EOM;
 Unable to extract HEAD position from $blog.
 This may be either because the objective in this bisection

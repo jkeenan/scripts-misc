@@ -1,0 +1,53 @@
+#!/bin/sh
+# Assumes following environmental variables:
+# $TESTINGDIR
+# $SECONDARY_CHECKOUT_DIR
+
+# Takes 1 mandatory and 2 optional arguments:
+# 1. BRANCH: can be git branch or tag
+# 2. CONFIG_ARGS: String holding args for Perl's ./Configure
+# 3. LABEL: User-specified name for top-level directory (in addition to
+# BRANCH)
+
+# example invocations:
+#
+# 2 args:
+# install_custom_branch_for_testing blead "$ANDREAS_CONFIG_ARGS"
+#
+# 3 args:
+# export THREADED_PERL_ARGS="-des -Dusedevel -Dusethreads" && \
+#   install_custom_branch_for_testing \
+#   perl-5.12.0 \
+#   "$THREADED_PERL_ARGS" \
+#   threaded
+
+set -x
+BRANCH=$1
+cd $TESTINGDIR
+test -d $BRANCH && rm -rf $BRANCH
+BRANCHDIR=$TESTINGDIR/$BRANCH
+mkdir $BRANCHDIR
+cd $SECONDARY_CHECKOUT_DIR
+git clean -dfx
+git fetch --prune origin
+git checkout $BRANCH
+if [ "$BRANCH" = 'blead' ]; then
+    git rebase origin/blead
+fi
+PERL5OPT=      # In case you have this set, it shouldn't be for these purposes
+TEST_JOBS=8    # Set to a suitable number for parallelism on your system
+
+CONFIG_ARGS=$2
+./Configure $CONFIG_ARGS -Dprefix=${BRANCHDIR} -Uversiononly -Dman1dir=none -Dman3dir=none
+
+make -j${TEST_JOBS} install && \
+    cd $BRANCHDIR && \
+    . $HOMEDIR/.perl5_testing_functions.sh && \
+    get_cpanm
+
+LABEL=$3
+if [ -n $LABEL ]; then
+    cd $TESTINGDIR && \
+    ln -s $BRANCHDIR "${BRANCH}-${LABEL}" && \
+    cd -
+fi

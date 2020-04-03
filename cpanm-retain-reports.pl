@@ -9,7 +9,7 @@ use Data::Dump ( qw| dd pp| );
 
 =head1 NAME
 
-cpanm-reporter.pl - Parse F<cpanm> F<build.log> into JSON files
+cpanm-retain-reports.pl - Parse F<cpanm> F<build.log> into JSON files
 
 =head1 SYNOPSIS
 

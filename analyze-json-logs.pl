@@ -181,7 +181,6 @@ open my $OUT, ">:encoding(utf8)", $foutput_file
 $psv->print($OUT, $columns), "\n" or $psv->error_diag;
 for my $dist (sort keys %data) {
     $psv->print($OUT, [
-       $dist,
        @{$data{$dist}}{@fields},
     ]) or $psv->error_diag;
 }

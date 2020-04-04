@@ -1,7 +1,6 @@
 #!/usr/bin/env perl
 use 5.14.0;
 use warnings;
-use Data::Dumper;$Data::Dumper::Indent=1;
 use Carp;
 use Cwd;
 use File::Spec;
@@ -17,7 +16,9 @@ analyze-json-logs.pl - Create delimiter-separated value file from directory of J
 
 =head1 SYNOPSIS
 
-TK
+    $ perl analyze-json-logs.pl \
+        --json_dir=/path/to/directory/for/json/files \
+        --verbose
 
 =head1 DESCRIPTION
 
@@ -152,48 +153,31 @@ opendir my $DIRH, $json_dir or croak "Unable to open $json_dir for reading";
 my @json_log_files = sort map { File::Spec->catfile($json_dir, $_) }
     grep { m/\.log\.json$/ } readdir $DIRH;
 closedir $DIRH or croak "Unable to close $json_dir after reading";
-dd(\@json_log_files) if $verbose;
+#dd(\@json_log_files) if $verbose;
 
 my %data = ();
-
-say "\nFinished";
-__END__
-
-
-my $workdir = "$ENV{HOMEDIR}/learn/perl/p5p/module-install-revdeps";
-my $vranalysis_subdir = "testing/20200402";
-my $vranalysis_dir = "$workdir/$vranalysis_subdir";
-
-
-
 for my $log (@json_log_files) {
-    my $flog = File::Spec->catfile($cwd, $log);
     my %this = ();
-    my $f = Path::Tiny::path($flog);
+    my $f = Path::Tiny::path($log);
     my $decoded;
     {
         local $@;
         eval { $decoded = decode_json($f->slurp_utf8); };
         if ($@) {
-            say STDERR "JSON decoding problem in $flog: <$@>";
+            say STDERR "JSON decoding problem in $log: <$@>";
             eval { $decoded = JSON->new->decode($f->slurp_utf8); };
         }
     }
     map { $this{$_} = $decoded->{$_} } ( qw| author dist distname distversion grade | );
     $data{$decoded->{dist}} = \%this;
 }
-#dd(\%data);
-
-my $cdvfile = File::Spec->catfile($cwd, 'module-install-dsl-attempt.psv');
-my $fcdvfile = $cdvfile;
-say "Output will be: $fcdvfile" if $verbose;
-
+#dd(\%data) if $verbose;
 
 my @fields = ( qw| dist author distname distversion grade | );
 my $columns = [ @fields ];
 my $psv = Text::CSV_XS->new({ binary => 1, auto_diag => 1, sep_char => $sep_char, eol => $/ });
-open my $OUT, ">:encoding(utf8)", $fcdvfile
-    or croak "Unable to open $fcdvfile for writing";
+open my $OUT, ">:encoding(utf8)", $foutput_file
+    or croak "Unable to open $foutput_file for writing";
 $psv->print($OUT, $columns), "\n" or $psv->error_diag;
 for my $dist (sort keys %data) {
     $psv->print($OUT, [
@@ -201,9 +185,8 @@ for my $dist (sort keys %data) {
        @{$data{$dist}}{@fields},
     ]) or $psv->error_diag;
 }
-close $OUT or croak "Unable to close $fcdvfile after writing";
-croak "$fcdvfile not created" unless (-f $fcdvfile);
-say "Examine ", (($sep_char eq ',') ? 'comma' : 'pipe'), "-separated values in $fcdvfile" if $verbose;
-
+close $OUT or croak "Unable to close $output_file after writing";
+croak "$foutput_file not created" unless (-f $foutput_file);
+say "Examine ", (($sep_char eq ',') ? 'comma' : 'pipe'), "-separated values in $foutput_file" if $verbose;
 
 say "\nFinished";

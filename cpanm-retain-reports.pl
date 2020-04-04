@@ -11,7 +11,7 @@ cpanm-retain-reports.pl - Parse F<cpanm> F<build.log> into JSON files
 
 =head1 SYNOPSIS
 
-    perl cpanm-retain-reports.pl \
+    $ perl cpanm-retain-reports.pl \
         --json_dir=/path/to/directory/for/json/files \
         --verbose
 

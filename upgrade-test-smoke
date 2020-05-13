@@ -2,6 +2,7 @@
 use 5.14.0;
 use warnings;
 our $VERSION = '0.01';
+use Archive::Tar;
 use Carp;
 use Config;
 use Cwd;
@@ -263,11 +264,8 @@ else {
     $downloads_dir = dirname($local_archive);
     $tarball = basename($local_archive);
     chdir $downloads_dir or croak "Unable to change to $downloads_dir";
-    system(qq|gunzip -v $local_archive|)
-        and croak "Unable to unzip $local_archive";
-    my ($tarfile) = $local_archive =~ m/^(.*)\.(?:g?z|bz2)|zip|tgz$/i;
-    system(qq|tar -xvf $tarfile|)
-        and croak "Unable to untar $tarfile";
+    my $tar = Archive::Tar->new( $local_archive );
+    my @extracted_files = $tar->extract();
 }
 
 my ($distvname) = $tarball =~ m/(.+?)\.(?:tar\.(?:g?z|bz2)|zip|tgz)$/i;

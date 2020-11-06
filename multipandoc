@@ -114,6 +114,9 @@ my $program = 'pod2pandoc';
 my @filetypes = ( qw| pdf html txt odt | );
 for my $f (@filetypes) {
     my $cmd = qq{$program "$sourcedir/$podfile" -o "$outputdir/$stub.$f"};
+    if ($f eq 'html') {
+        $cmd .= " --standalone";
+    }
     say "Processing: $cmd" if $verbose;
     system($cmd) and carp "Unable to execute pod2pandoc and pandoc for filetype '$f'";
 }

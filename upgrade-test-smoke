@@ -2,6 +2,7 @@
 use 5.14.0;
 use warnings;
 our $VERSION = '0.01';
+use Archive::Tar;
 use Carp;
 use Config;
 use Cwd;
@@ -260,9 +261,11 @@ else {
     croak "Could not find Test-Smoke tarball at $local_archive"
         unless (-f $local_archive);
     say "Handling local archive found at $local_archive" if $verbose;
-    system(qq|tar -C $downloads_dir -xzvf $local_archive|)
-        and croak "Unable to unpack $local_archive";
+    $downloads_dir = dirname($local_archive);
     $tarball = basename($local_archive);
+    chdir $downloads_dir or croak "Unable to change to $downloads_dir";
+    my $tar = Archive::Tar->new( $local_archive );
+    my @extracted_files = $tar->extract();
 }
 
 my ($distvname) = $tarball =~ m/(.+?)\.(?:tar\.(?:g?z|bz2)|zip|tgz)$/i;

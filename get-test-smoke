@@ -289,8 +289,9 @@ croak 'Environmental variable $HOMEDIR not defined'
     unless (exists $ENV{HOMEDIR} and (-d $ENV{HOMEDIR}));
 my $cwd = cwd();
 
-my ($downloads_dir, $host, $hostdir, $application_dir, $verbose);
+my ($downloaded_tarball, $downloads_dir, $host, $hostdir, $application_dir, $verbose);
 GetOptions(
+    "downloaded_tarball=s"   => \$downloaded_tarball,
     "downloads_dir=s"   => \$downloads_dir,
     "application_dir=s" => \$application_dir,
     "host=s"            => \$host,
@@ -314,41 +315,59 @@ else {
     }
 }
 
-$downloads_dir //= (exists $ENV{DOWNLOADS_DIR} && (-d $ENV{DOWNLOADS_DIR}))
-    ? $ENV{DOWNLOADS_DIR} : tempdir();
-unless (-d $downloads_dir) { croak "Could not locate downloads_dir '$downloads_dir'"; }
-else { say "downloads_dir:          $downloads_dir" if $verbose; }
+my $existing_tarball;
+if (defined $downloaded_tarball) {
+    croak "Unable to locate downloaded tarball $downloaded_tarball"
+        unless -f $downloaded_tarball;
+    $existing_tarball++;
+}
+unless ($existing_tarball) {
+    $downloads_dir //= (exists $ENV{DOWNLOADS_DIR} && (-d $ENV{DOWNLOADS_DIR}))
+        ? $ENV{DOWNLOADS_DIR} : tempdir();
+    unless (-d $downloads_dir) { croak "Could not locate downloads_dir '$downloads_dir'"; }
+    else { say "downloads_dir:          $downloads_dir" if $verbose; }
 
-if (! defined $host or ! defined $hostdir) {
-    $host       = 'ftp.cpan.org';
-    $hostdir    = 'pub/CPAN/modules/by-module';
+    if (! defined $host or ! defined $hostdir) {
+        $host       = 'ftp.cpan.org';
+        $hostdir    = 'pub/CPAN/modules/by-module';
+    }
 }
 $verbose //= 0;
 
+my $tslatest;
+if ($existing_tarball) {
+    $tslatest = $downloaded_tarball;
+}
+else {
+    # download Test-Smoke via FTP
+    chdir $downloads_dir or croak "Could not change to $downloads_dir";
 
-# download Test-Smoke via FTP
-chdir $downloads_dir or croak "Could not change to $downloads_dir";
+    my $pdfd_object = Perl::Download::FTP::Distribution->new( {
+        host            => $host,
+        dir             => $hostdir,
+        distribution    => 'Test-Smoke',
+        verbose         => $verbose,
+    } );
+    croak "Could not create Perl::Download::FTP::Distribution object"
+        unless defined $pdfd_object;
+    if ($verbose) {
+        say sprintf("%-24s%s" => 'host:', $host);
+        say sprintf("%-24s%s" => 'hostdir:', $hostdir);
+    }
 
-my $pdfd_object = Perl::Download::FTP::Distribution->new( {
-    host            => $host,
-    dir             => $hostdir,
-    distribution    => 'Test-Smoke',
-    verbose         => $verbose,
-} );
-croak "Could not create Perl::Download::FTP::Distribution object"
-    unless defined $pdfd_object;
-if ($verbose) {
-    say sprintf("%-24s%s" => 'host:', $host);
-    say sprintf("%-24s%s" => 'hostdir:', $hostdir);
+    $tslatest = $pdfd_object->get_latest_release( {
+        verbose         => $verbose,
+        path            => $downloads_dir,
+    } );
+    croak "get_latest_release did not download Test-Smoke"
+        unless -f $tslatest;
 }
 
-my $tslatest = $pdfd_object->get_latest_release( {
-    verbose         => $verbose,
-    path            => $downloads_dir,
-} );
-croak "get_latest_release did not download Test-Smoke"
-    unless -f $tslatest;
-system(qq|tar xzvf $tslatest|) and croak "Unable to unpack $tslatest";
+say "tslatest: $tslatest" if $verbose;
+system(qq|gunzip -v $tslatest|) and croak "Unable to gunzip $tslatest";
+my ($tarfile) = $tslatest =~ m/^(.*)\.gz$/;
+say "tarfile: $tarfile" if $verbose;
+system(qq|tar xvf $tarfile|) and croak "Unable to untar $tarfile";
 
 my $tarball = basename($tslatest);
 my ($distvname) = $tarball =~ m/(.+?)\.(?:tar\.(?:g?z|bz2)|zip|tgz)$/i;

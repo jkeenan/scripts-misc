@@ -148,7 +148,7 @@ The program validates the command-line options.
 
 =item *
 
-Unless the C<tarball> option is provided, the program downloads the latest release of
+Unless the C<local_option> option is provided, the program downloads the latest release of
 F<Test-Smoke> from the FTP mirror identified by C<host> and C<hostdir> to the
 directory named in C<downloads_dir>.
 

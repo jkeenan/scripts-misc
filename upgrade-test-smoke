@@ -16,6 +16,7 @@ use File::Spec 0.82;
 use File::Temp qw(tempdir);
 use Path::Tiny;
 use Perl::Download::FTP::Distribution 0.04;
+use Data::Dump qw(dd pp);
 
 BEGIN {
     # Test::Smoke prerequisites not found in Perl 5 core
@@ -318,18 +319,16 @@ my %counts = (
 );
 for my $d (keys %dirs) {
     my $wanted = sub {
-        #$_ =~ m/\.pm$/ and $compares_pm{$d}{$File::Find::name}{path} = $File::Find::name;
         if ($_ =~ m/\.pm$/) {
             my @dirs = File::Spec->splitdir($File::Find::dir);
-            #say "$d: XXX: $File::Find::name: @dirs";
             my @relevant_dirs = @dirs[ $counts{$d} .. $#dirs ];
-            #say "$d: YYY: $File::Find::name: @relevant_dirs";
             my $k =  File::Spec->catfile(@relevant_dirs, $_);
             $compares_pm{$d}{$k}{path} = $File::Find::name;
         }
     };
     find($wanted, $dirs{$d});
 }
+dd(\%compares_pm);
 
 for my $k (keys %{$compares_pm{new}}) {
     if (! exists $compares_pm{old}{$k}) {
@@ -363,15 +362,17 @@ if ($verbose) {
     }
 }
 
-for my $pm (sort keys %{$compares_pm{new}}) {
-    if ($compares_pm{new}{$pm}{differ}) {
-        my $backup = $compares_pm{new}{$pm}{oldpath} . '.bak';
-        move $compares_pm{new}{$pm}{oldpath} => $backup
-            or croak "Unable to rename $compares_pm{new}{$pm}{oldpath} to $backup";
-        copy $compares_pm{new}{$pm}{path} => $compares_pm{new}{$pm}{oldpath}
-            or croak "Unable to copy $compares_pm{new}{$pm}{path} to $compares_pm{new}{$pm}{oldpath}";
-    }
-}
+# Need similar block to following to handle new versions of .pl files
+
+#for my $pm (sort keys %{$compares_pm{new}}) {
+#    if ($compares_pm{new}{$pm}{differ}) {
+#        my $backup = $compares_pm{new}{$pm}{oldpath} . '.bak';
+#        move $compares_pm{new}{$pm}{oldpath} => $backup
+#            or croak "Unable to rename $compares_pm{new}{$pm}{oldpath} to $backup";
+#        copy $compares_pm{new}{$pm}{path} => $compares_pm{new}{$pm}{oldpath}
+#            or croak "Unable to copy $compares_pm{new}{$pm}{path} to $compares_pm{new}{$pm}{oldpath}";
+#    }
+#}
 
 say "Finished" if $verbose;
 

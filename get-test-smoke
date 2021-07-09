@@ -1,7 +1,7 @@
 #!/usr/bin/env perl
 use 5.14.0;
 use warnings;
-our $VERSION = '0.01';
+our $VERSION = '0.05';
 use Carp;
 use Config;
 use Cwd;
@@ -71,13 +71,13 @@ configuration options.
 F<get-test-smoke> is likely to be of more use for case 2 above, manual smoke
 testing.  It should be useful when you often need to switch among different
 Perl configuration options or different branches of the Perl 5 core
-distribution.  It should also be useful if you are installing new platform or
-virtual machine and want to get smoke testing of the Perl 5 core distribution
-up and running quickly.  F<get-test-smoke> enables you to skip running <perl
-configsmoke.pl> and lays out directories and files in a more rational (in the
-author's opinion) manner than that program does.  The smoke reports which
-F<get-test-smoke> creates, however, are identical to those created by a more
-standard F<Test-Smoke> run.
+distribution.  It should also be useful if you are installing a new platform
+or virtual machine and you want to get smoke testing of the Perl 5 core
+distribution up and running quickly.  F<get-test-smoke> enables you to skip
+running <perl configsmoke.pl> and lays out directories and files in a more
+rational (in the author's opinion) manner than F<configsmoke.pl> does.  The
+smoke reports which F<get-test-smoke> creates, however, are identical to those
+created by a more standard F<Test-Smoke> run.
 
 =head1 USAGE
 
@@ -143,7 +143,7 @@ The following command-line options are available:
 =item * C<downloads_dir>
 
 I<Optional.> Path to the directory to which you want the F<Test-Smoke> tarball
-to be downloaded.  If not specified, falls back to, first, a directory named
+./getto be downloaded.  If not specified, falls back to, first, a directory named
 in an environmental variable C<$DOWNLOADS_DIR> and then to a temporary
 directory created via C<File::Temp::tempdir()>.
 
@@ -178,6 +178,17 @@ But you can select any FTP mirror as C<host> I<provided> that you supply the
 appropriate value for C<hostdir> as well.  Example:
 
     --host=ftp.funet.fi --hostdir=pub/languages/perl/CPAN/modules/by-module
+
+=item * C<downloaded_tarball>
+
+I<Optional.>  Path to a tarball of F<Test-Smoke> which you have already
+downloaded to some place on your system and which you have verified can be
+unpacked.
+
+    --downloaded_tarball=$DOWNLOADS_DIR/Test-Smoke-1.78.tar.gz
+
+This option is provided because on occasion the F<Test-Smoke> tarballs have
+had problems when being unpacked.
 
 =item * C<verbose>
 
@@ -223,7 +234,8 @@ without running the library's own test suite).
 Prepares a F<smokecurrent_config> configuration file with reasonable defaults.
 (This obviates the need to run C<perl configsmoke.pl> and respond to its
 prompts, as you would need to do in a standard F<Test-Smoke> installation.)
-WHAT ARE THE DEFAULTS?
+Among those defaults: F<get-test-smoke> posts via F<HTTP::Tiny> to
+L<https://perl5.test-smoke.org/>; it does not post via mail.
 
 =item *
 
@@ -291,12 +303,12 @@ my $cwd = cwd();
 
 my ($downloaded_tarball, $downloads_dir, $host, $hostdir, $application_dir, $verbose);
 GetOptions(
-    "downloaded_tarball=s"   => \$downloaded_tarball,
-    "downloads_dir=s"   => \$downloads_dir,
-    "application_dir=s" => \$application_dir,
-    "host=s"            => \$host,
-    "hostdir=s"         => \$hostdir,
-    "verbose"           => \$verbose,
+    "downloaded_tarball=s"  => \$downloaded_tarball,
+    "downloads_dir=s"       => \$downloads_dir,
+    "application_dir=s"     => \$application_dir,
+    "host=s"                => \$host,
+    "hostdir=s"             => \$hostdir,
+    "verbose"               => \$verbose,
 ) or croak "Unable to get options";
 
 # Validate options

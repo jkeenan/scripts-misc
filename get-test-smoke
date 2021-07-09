@@ -234,7 +234,8 @@ without running the library's own test suite).
 Prepares a F<smokecurrent_config> configuration file with reasonable defaults.
 (This obviates the need to run C<perl configsmoke.pl> and respond to its
 prompts, as you would need to do in a standard F<Test-Smoke> installation.)
-WHAT ARE THE DEFAULTS?
+Among those defaults: F<get-test-smoke> posts via F<HTTP::Tiny> to
+L<https://perl5.test-smoke.org/>; it does not post via mail.
 
 =item *
 

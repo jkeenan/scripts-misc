@@ -1,7 +1,7 @@
 #!/usr/bin/env perl
 use 5.14.0;
 use warnings;
-our $VERSION = '0.05';
+our $VERSION = '0.06';
 use Carp;
 use Config;
 use Cwd;
@@ -431,7 +431,7 @@ my $my_conf = {
     'locale' => "",
     'defaultenv' => 0,
     'mail' => 0,
-    'smokedb_url' => "http://perl5.test-smoke.org/report",
+    'smokedb_url' => "https://perl5.test-smoke.org/report",
     'adir' => "$application_dir/logs/smokecurrent",
     'lfile' => "$application_dir/smokecurrent.log",
     'makeopt' => "",

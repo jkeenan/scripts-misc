@@ -17,5 +17,6 @@
 
 # Adapted from Florian Ragwitz and Karl Williamson
 
-wget -P bin -O - http://search.mcpan.org/src/MIYAGAWA/App-cpanminus-1.7043/bin/cpanm | \
+CPANM_URL=https://fastapi.metacpan.org/source/MIYAGAWA/App-cpanminus-1.7043/bin/cpanm
+wget -P bin -O - $CPANM_URL | \
     ./bin/perl - App::cpanminus

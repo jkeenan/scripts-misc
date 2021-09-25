@@ -51,19 +51,28 @@ for my $br (@branches) {
 }
 
 for my $br (@branches) {
-    smoke_one_branch($br);
-}
-say "Finished all branches requested";
-
-sub smoke_one_branch {
-    my $br = shift;
-    #my $config = "smokecurrent.gitbranch";
-    my $config = $scbg;
     my @lines;
-    tie @lines, 'Tie::File', $config or croak "Unable to tie $config";
+    tie @lines, 'Tie::File', $scbg or croak "Unable to tie $scbg";
     unshift @lines, $br;
-    untie @lines or croak "Unable to untie from $config";
+    untie @lines or croak "Unable to untie from $scbg";
     system(qq| sh $scsh |)
         and carp "Did not get 'exit 0' when running 'sh $scsh' for $br";
     say "Completed $br";
 }
+say "Finished all branches requested";
+
+=head1 LIMITATION
+
+The program currently cannot itself determine whether a F<smoke-me/> branch
+provided on the command-line actually exists in the main Perl5 repository.  It
+is F<Test-Smoke> which does the fetches from that repository, but, as far as I
+can tell, if F<Test-Smoke> does not find a branch with the name provided by
+the user in that repository, it simply reverts to whatever was the last branch
+being tested in the F<perl-current/> subdirectory.  The C<system> call to F<sh
+./smokecurrent.sh> is therefore likely to exit successfully (exit value C<0>)
+even though the branch requested was not actually run.
+
+So make sure your F<smoke-me/> branch actually exists before running the program.
+
+=cut
+

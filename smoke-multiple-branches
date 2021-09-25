@@ -1,0 +1,60 @@
+#!/usr/bin/env perl
+use 5.14.0;
+use warnings;
+use Carp;
+use Tie::File;
+
+=head1 NAME
+
+smoke-multiple-branches - Smoke-test a list of branches using one configuration
+
+=head1 USAGE
+
+    smoke-multiple-branches <smoke-me/branch1> <smoke-me/branch2> ...
+
+=head1 DESCRIPTION
+
+This program can be used when you need to smoke-test more than one F<smoke-me>
+branch using the same configuration for each.  By I<configuration> we mean the
+same F<smokecurrent_config>, the same F<perlcurrent.cfg>, etc.  The program
+simply inserts the name of a branch into the first line of
+F<smokecurrent.gitbranch>, then invokes F<sh ./smokecurrent.sh>.
+
+Each branch to be smoke-tested must be present in L<the main Perl5 repository
+on GitHub|https://github.com/Perl/perl5> and its name must begin with
+C<smoke-me/>.  If the branch cannot be located a warning will be issued and
+the program will proceed to the next branch provided on the command line.
+
+The program currently assumes that your smoke-testing rig is found in
+F<$HOMEDIR/p5smoke>.
+
+=cut
+
+croak "Need branch(es) to be smoked on command-line"
+    unless @ARGV;
+
+my @branches = @ARGV;
+for my $br (@branches) {
+    croak "'$br' does not look like a smoke-me branch"
+        unless $br =~ m{^smoke-me/};
+}
+
+my $smokedir = "$ENV{HOMEDIR}/p5smoke";
+chdir $smokedir or croak "Unable to chdir to $smokedir";
+
+for my $br (@branches) {
+    smoke_one_branch($br);
+}
+say "Finished all branches requested";
+
+sub smoke_one_branch {
+    my $br = shift;
+    my $config = "smokecurrent.gitbranch";
+    my @lines;
+    tie @lines, 'Tie::File', $config or croak "Unable to tie $config";
+    unshift @lines, $br;
+    untie @lines or croak "Unable to untie from $config";
+    system(qq| sh ./smokecurrent.sh |)
+        and carp "Did not get 'exit 0' when running 'smokecurrent.sh' for $br";
+    say "Completed $br";
+}

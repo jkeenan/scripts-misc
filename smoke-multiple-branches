@@ -1,8 +1,9 @@
 #!/usr/bin/env perl
 use 5.14.0;
 use warnings;
-our $VERSION = '0.01';
+our $VERSION = '0.02';
 use Carp;
+use File::Spec;
 use Tie::File;
 
 =head1 NAME
@@ -11,7 +12,8 @@ smoke-multiple-branches - Smoke-test a list of branches using one configuration
 
 =head1 USAGE
 
-    smoke-multiple-branches <smoke-me/branch1> <smoke-me/branch2> ...
+    $ cd /path/to/test-smoke-rig
+    $ smoke-multiple-branches <smoke-me/branch1> <smoke-me/branch2> ...
 
 =head1 DESCRIPTION
 
@@ -26,10 +28,18 @@ on GitHub|https://github.com/Perl/perl5> and its name must begin with
 C<smoke-me/>.  If the branch cannot be located a warning will be issued and
 the program will proceed to the next branch provided on the command line.
 
-The program currently assumes that your smoke-testing rig is found in
-F<$HOMEDIR/p5smoke>.
+The program is intended to be called from the same directory within your
+F<Test-Smoke>-based smoke-testing rig in which are found
+F<smokecurrent.gitbranch> and F<smokecurrent.sh>.
 
 =cut
+
+# We expect to find two files in the current directory; die if we cannot.
+my $scbg = File::Spec->catfile('.', 'smokecurrent.gitbranch');
+my $scsh = File::Spec->catfile('.', 'smokecurrent.sh');
+for my $f ($scbg, $scsh) {
+    croak "Could not locate '$f'" unless -e $f;
+}
 
 croak "Need branch(es) to be smoked on command-line"
     unless @ARGV;
@@ -40,9 +50,6 @@ for my $br (@branches) {
         unless $br =~ m{^smoke-me/};
 }
 
-my $smokedir = "$ENV{HOMEDIR}/p5smoke";
-chdir $smokedir or croak "Unable to chdir to $smokedir";
-
 for my $br (@branches) {
     smoke_one_branch($br);
 }
@@ -50,12 +57,13 @@ say "Finished all branches requested";
 
 sub smoke_one_branch {
     my $br = shift;
-    my $config = "smokecurrent.gitbranch";
+    #my $config = "smokecurrent.gitbranch";
+    my $config = $scbg;
     my @lines;
     tie @lines, 'Tie::File', $config or croak "Unable to tie $config";
     unshift @lines, $br;
     untie @lines or croak "Unable to untie from $config";
-    system(qq| sh ./smokecurrent.sh |)
-        and carp "Did not get 'exit 0' when running 'smokecurrent.sh' for $br";
+    system(qq| sh $scsh |)
+        and carp "Did not get 'exit 0' when running 'sh $scsh' for $br";
     say "Completed $br";
 }

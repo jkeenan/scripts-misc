@@ -1,0 +1,18 @@
+#!/bin/sh
+# add-perl5-remote
+
+# Don't let me use uninit vars, and any error is a problem
+set -u
+set -e
+# Print expanded commands
+set -x
+
+REMOTE_NAME=$1
+if [ "$#" -gt 1 ]; then
+    REMOTE_REPO=$2
+else
+    REMOTE_REPO=$REMOTE_NAME
+fi
+
+git remote add $REMOTE_NAME "git@github.com:$REMOTE_REPO/perl5.git"
+git fetch $REMOTE_NAME

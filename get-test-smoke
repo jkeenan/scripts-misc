@@ -143,11 +143,11 @@ The following command-line options are available:
 =item * C<downloads_dir>
 
 I<Optional.> Path to the directory to which you want the F<Test-Smoke> tarball
-./getto be downloaded.  If not specified, falls back to, first, a directory named
+to be downloaded.  If not specified, falls back to, first, a directory named
 in an environmental variable C<$DOWNLOADS_DIR> and then to a temporary
 directory created via C<File::Temp::tempdir()>.
 
-    --download_dir=/home/username/Downloads
+    --downloads_dir=/home/username/Downloads
 
 =item * C<application_dir>
 

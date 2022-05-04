@@ -1,0 +1,29 @@
+#!/usr/bin/env perl
+use 5.14.0;
+use warnings;
+use Carp;
+
+my $input = shift(@ARGV);
+croak "Need logNNN.log file as input"
+    unless (-f $input and $input =~ m/^log[0-9a-f]{40}\.log$/);
+
+my $output = "mini${input}";
+open my $IN, '<', $input
+    or croak "Could not open $input for reading";
+open my $OUT, '>', $output
+    or croak "Could not open $output for writing";
+my $pattern = qr/\[manicheck\] (?:Matched|Skipped|Undeclared)/;
+my $manicheck_seen = 0;
+while (my $l = <$IN>) {
+    chomp $l;
+    if (! $manicheck_seen and $l =~ m/$pattern/) {
+        say $OUT (' ') x 27, "XXX: See $input for manicheck";
+        $manicheck_seen++;
+        next;
+    }
+    say $OUT $l
+        unless ($l =~ m/$pattern/ and $l !~ m{"log_file"});
+}
+
+close $OUT or croak "Could not close $output after writing";
+close $IN  or croak "Could not close $input after reading";

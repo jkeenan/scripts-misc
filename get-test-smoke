@@ -1,7 +1,7 @@
 #!/usr/bin/env perl
 use 5.14.0;
 use warnings;
-our $VERSION = '0.07';
+our $VERSION = '0.08';
 use Carp;
 use Config;
 use Cwd;
@@ -11,7 +11,7 @@ use File::Copy;
 use File::Path qw(make_path);
 use File::Spec 0.82;
 use File::Temp qw(tempdir);
-use Perl::Download::FTP::Distribution 0.04;
+use Perl::Download::FTP::Distribution 0.06;
 
 BEGIN {
     # Test::Smoke prerequisites not found in Perl 5 core
@@ -249,7 +249,7 @@ installation in the following ways:
 
 =item *
 
-The F<git-perl> and <perl-current> directories are placed I<beneath>
+The F<git-perl> and F<perl-current> directories are placed I<beneath>
 C<application_dir> rather than at the same level in the filesystem as
 C<application_dir>.
 
@@ -631,7 +631,7 @@ sub whereis {
 
 =head2 Copyright
 
-Copyright 2018, James E Keenan.  All rights reserved.
+Copyright 2018-2025, James E Keenan.  All rights reserved.
 
 =head2 License
 

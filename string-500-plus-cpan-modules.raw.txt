@@ -499,7 +499,6 @@ Email::Address::XS
 File::MMagic
 Modern::Perl
 PDL
-EV
 Variable::Magic
 Cache::utLRU
 Number::Format

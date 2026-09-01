@@ -11,7 +11,7 @@ use File::Copy;
 use File::Path qw(make_path);
 use File::Spec 0.82;
 use File::Temp qw(tempdir);
-use Perl::Download::FTP::Distribution 0.06;
+#use Perl::Download::FTP::Distribution 0.06;
 
 BEGIN {
     # Test::Smoke prerequisites not found in Perl 5 core
@@ -92,7 +92,7 @@ modules which are prerequisites for F<Test-Smoke> or which this program itself
 requires.  You should be able to use F<cpan>, F<cpanm> or F<cpanplus>.
 Example:
 
-    $> sudo cpan Perl::Download::FTP::Distribution \
+    $> sudo cpan \
         CGI::Util JSON JSON::XS System::Info \
         HTTP::Daemon HTTP::Message Test::NoWarnings
 
@@ -108,8 +108,6 @@ were used where available and CPAN libraries where not:
         p5-HTTP-Daemon \
         p5-HTTP-Message \
         p5-Test-NoWarnings
-
-    $> sudo cpan Perl::Download::FTP::Distribution
 
 =item * Environmental Variables
 
@@ -351,28 +349,28 @@ if ($existing_tarball) {
     $tslatest = $downloaded_tarball;
 }
 else {
-    # download Test-Smoke via FTP
-    chdir $downloads_dir or croak "Could not change to $downloads_dir";
-
-    my $pdfd_object = Perl::Download::FTP::Distribution->new( {
-        host            => $host,
-        dir             => $hostdir,
-        distribution    => 'Test-Smoke',
-        verbose         => $verbose,
-    } );
-    croak "Could not create Perl::Download::FTP::Distribution object"
-        unless defined $pdfd_object;
-    if ($verbose) {
-        say sprintf("%-24s%s" => 'host:', $host);
-        say sprintf("%-24s%s" => 'hostdir:', $hostdir);
-    }
-
-    $tslatest = $pdfd_object->get_latest_release( {
-        verbose         => $verbose,
-        path            => $downloads_dir,
-    } );
-    croak "get_latest_release did not download Test-Smoke"
-        unless -f $tslatest;
+#    # download Test-Smoke via FTP
+#    chdir $downloads_dir or croak "Could not change to $downloads_dir";
+#
+#    my $pdfd_object = Perl::Download::FTP::Distribution->new( {
+#        host            => $host,
+#        dir             => $hostdir,
+#        distribution    => 'Test-Smoke',
+#        verbose         => $verbose,
+#    } );
+#    croak "Could not create Perl::Download::FTP::Distribution object"
+#        unless defined $pdfd_object;
+#    if ($verbose) {
+#        say sprintf("%-24s%s" => 'host:', $host);
+#        say sprintf("%-24s%s" => 'hostdir:', $hostdir);
+#    }
+#
+#    $tslatest = $pdfd_object->get_latest_release( {
+#        verbose         => $verbose,
+#        path            => $downloads_dir,
+#    } );
+#    croak "get_latest_release did not download Test-Smoke"
+#        unless -f $tslatest;
 }
 
 say "tslatest: $tslatest" if $verbose;

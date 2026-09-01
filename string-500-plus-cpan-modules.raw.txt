@@ -598,3 +598,4 @@ Symbol::Global::Name
 Test::Leaner
 Test::Resub
 foundation
+Catmandu

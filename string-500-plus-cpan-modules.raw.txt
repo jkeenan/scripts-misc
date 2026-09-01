@@ -557,3 +557,10 @@ Unicode::UTF8
 XML::Declare
 XS::Framework
 XS::Parse::Sublike
+Internals
+Params::Classify
+XML::Easy
+Test::XML::Easy
+XML::Easy::ProceduralWriter
+XML::Easy::SimpleSchemaUtil
+WebService::Solr

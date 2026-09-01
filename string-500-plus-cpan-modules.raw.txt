@@ -564,3 +564,17 @@ Test::XML::Easy
 XML::Easy::ProceduralWriter
 XML::Easy::SimpleSchemaUtil
 WebService::Solr
+Sys::Ibam
+Wifi::WpaCtrl
+Regexp::Util
+Data::Alias
+EV
+Authen::SASL::XS
+Lexical::SealRequireHints
+JSON::DWIW
+Marpa::R2
+Math::Geometry::Planar::GPC
+XS::Install
+Feature::Compat::Class
+Imager
+Net::DNS::Resolver::Unbound

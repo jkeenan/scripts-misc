@@ -599,3 +599,6 @@ Test::Leaner
 Test::Resub
 foundation
 Catmandu
+Class::Accessor::Inherited::XS
+Mooish::AttributeBuilder
+Kelp

@@ -578,3 +578,5 @@ XS::Install
 Feature::Compat::Class
 Imager
 Net::DNS::Resolver::Unbound
+DBIx::Class::TemporalRelations
+String::Equivalence::Amharic

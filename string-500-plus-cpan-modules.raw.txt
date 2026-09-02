@@ -625,3 +625,8 @@ namespace::clean::xs
 DB_File
 Data::DPath
 Test::Mock::LWP::Dispatch
+Curses
+Curses::UI
+App::Tarotplane
+Syntax::Operator::Equ
+Text::Beautify

@@ -41,6 +41,8 @@ my @tarballs = ();
 open my $IN, '<', $list or croak "Unable to open $list for reading";
 while (my $tb = <$IN>) {
     chomp $tb;
+    next if $tb =~ m/^\s*$/;
+    next if $tb =~ m/^#/;
     push @tarballs, $tb;
 }
 close $IN or croak "Unable to close $list after reading";
@@ -52,7 +54,6 @@ my @tarball_data;
 
 for my $url (@tarballs) {
     my $url_data = analyze_url($url);
-    #    dd $url_data;
     push @tarball_data, $url_data;
 }
 #dd \@tarball_data;
@@ -67,10 +68,9 @@ my $tdir = File::Spec->catdir('', 'tmp', $distro);
 mkdir $tdir or croak "Unable to mkdir" unless (-d $tdir);
 chdir $tdir or croak "Unable to chdir";
 for my $d (@tarball_data) {
-#for my $d ($tarball_data[0]) {
     system(qq|wget $d->{url}|) and croak "Unable to wget from $d->{url}";
     # We now have the tarball on disk.
-    # Before unpacking tarball, we should get mdate, format it, add to
+    # Before unpacking tarball, we should get mtime, format it for YYYYMMDD, add to
     # $tarball_data:
     $d->{last_upload} = get_upload_date($d->{filename});
     my $message = "$d->{distvname} uploaded $d->{last_upload}";

@@ -630,3 +630,4 @@ Curses::UI
 App::Tarotplane
 Syntax::Operator::Equ
 Text::Beautify
+CAE::Nastran::Nasmod

@@ -631,3 +631,6 @@ App::Tarotplane
 Syntax::Operator::Equ
 Text::Beautify
 CAE::Nastran::Nasmod
+Number::Phone
+Util::Underscore
+Feature::Compat::Defer

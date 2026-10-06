@@ -634,3 +634,11 @@ CAE::Nastran::Nasmod
 Number::Phone
 Util::Underscore
 Feature::Compat::Defer
+Devel::ebug
+Fennec::Lite
+HealthCheck
+JSON::String
+Scope::Upper
+Test::Fork
+Test::JSON::Schema::Acceptance
+Test::Metrics::Any

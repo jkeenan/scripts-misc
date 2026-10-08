@@ -643,3 +643,5 @@ Test::Fork
 Test::JSON::Schema::Acceptance
 Test::Metrics::Any
 Test2::Tools::TypeTiny
+Test::Stream
+

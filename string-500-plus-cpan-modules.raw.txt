@@ -645,3 +645,4 @@ Test::Metrics::Any
 Test2::Tools::TypeTiny
 Test::Stream
 App::Test::Generator
+Test::HTTP::Response

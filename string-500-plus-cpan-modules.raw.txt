@@ -522,7 +522,6 @@ IO::Capture::Extended
 Parse::File::Metadata
 Parse::Taxonomy
 Perl5::Build::Warnings
-Perl5::TestEachCommit
 Pod::Multi
 Regexp::Functions::chmod_et_al
 Set::Integer::Gapfillers
